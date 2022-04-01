@@ -1,6 +1,6 @@
 custom:
   basic-cluster-props: &basic-cluster-props
-    spark_version: "9.1.x-cpu-ml-scala2.12"
+    spark_version: "10.4.x-cpu-ml-scala2.12"
 
   basic-static-cluster: &basic-static-cluster
     new_cluster:
@@ -13,12 +13,12 @@ environments:
   default:
     strict_path_adjustment_policy: true
     jobs:
-      - name: "e2e-mlops-sample"
+      - name: "feature-table-creation"
         <<:
           - *basic-static-cluster
         spark_python_task:
-          python_file: "file://telco_churn/jobs/sample/entrypoint.py"
-          parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]
+          python_file: "file://telco_churn/jobs/feature_table_creator.py"
+          parameters: ["--conf-file", "file:fuse://conf/job_configs/feature_table_creation.yml"]
       - name: "e2e-mlops-sample-integration-test"
         <<:
           - *basic-static-cluster

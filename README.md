@@ -1,5 +1,25 @@
 # e2e-mlops
 
+*Niall Quick Notes*
+
+## Current Jobs Defined:
+
+### `feature_table_creation`
+
+**Interactive Cluster**
+```
+dbx execute --cluster-name=<name of interactive cluster> --job=feature-table-creation
+```
+**Automated Job Cluster**
+```
+dbx deploy --jobs=feature-table-creation --files-only
+dbx launch --job=feature-table-creation --as-run-submit --trace
+```
+
+---
+
+*Original dbx README*
+
 This is a sample project for Databricks, generated via cookiecutter.
 
 While using this project, you need Python 3.X and `pip` or `conda` for package management.
