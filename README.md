@@ -4,6 +4,12 @@
 
 ## Current Jobs Defined:
 
+*pre-requisite*: Set up [Databricks CLI](https://docs.databricks.com/dev-tools/cli/index.html#connection-profiles) with profile for https://e2-demo-field-eng.cloud.databricks.com/
+
+``` 
+databricks configure --token --profile e2-demo-field-eng
+```
+
 ### `feature_table_creation`
 
 **Interactive Cluster**
