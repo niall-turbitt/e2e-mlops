@@ -5,8 +5,12 @@ __pycache__/
 
 # Distribution / packaging
 *.egg-info/
+.eggs
 build
 dist
+
+# venv
+venv
 
 # Unit test / coverage reports
 .coverage
