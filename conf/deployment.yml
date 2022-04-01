@@ -1,0 +1,27 @@
+custom:
+  basic-cluster-props: &basic-cluster-props
+    spark_version: "9.1.x-cpu-ml-scala2.12"
+
+  basic-static-cluster: &basic-static-cluster
+    new_cluster:
+      <<: *basic-cluster-props
+      num_workers: 1
+      node_type_id: "i3.xlarge"
+
+# please note that we're using FUSE reference for config file, hence we're going to load this file using its local FS path
+environments:
+  default:
+    strict_path_adjustment_policy: true
+    jobs:
+      - name: "e2e-mlops-sample"
+        <<:
+          - *basic-static-cluster
+        spark_python_task:
+          python_file: "file://telco_churn/jobs/sample/entrypoint.py"
+          parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]
+      - name: "e2e-mlops-sample-integration-test"
+        <<:
+          - *basic-static-cluster
+        spark_python_task:
+          python_file: "file://tests/integration/sample_test.py"
+          parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]

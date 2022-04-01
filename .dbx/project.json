@@ -1,0 +1,9 @@
+{
+    "environments": {
+        "default": {
+            "profile": "e2-demo-field-eng",
+            "workspace_dir": "/Shared/dbx/e2e_mlops",
+            "artifact_location": "dbfs:/Shared/dbx/projects/e2e_mlops"
+        }
+    }
+}
