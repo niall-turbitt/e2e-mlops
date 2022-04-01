@@ -30,7 +30,7 @@ class DataPreprocessor:
 
     def process_label(self, psdf: ps.DataFrame, rename_to: str = 'churn') -> ps.DataFrame:
         """
-        Convert label to int and rename column
+        Convert label to int and rename label column
 
         TODO: add test
 
@@ -38,8 +38,6 @@ class DataPreprocessor:
         ----------
         psdf : ps.DataFrame
             pyspark.pandas DataFrame
-        label_col : str
-            Name of the original label column
         rename_to : str
             Name of new label column name
 
