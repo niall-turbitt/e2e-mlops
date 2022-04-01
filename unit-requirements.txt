@@ -1,6 +1,6 @@
 setuptools
 wheel
-pyspark==3.1.2
+pyspark~=3.2.1
 pyyaml
 pytest
 pytest-cov
