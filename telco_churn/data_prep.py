@@ -1,9 +1,11 @@
 from dataclasses import dataclass
+from typing import Union
 
 import pyspark.pandas as ps
 from pyspark.sql.dataframe import DataFrame as SparkDataFrame
 
-from databricks.feature_store import feature_table
+from databricks.feature_store import FeatureStoreClient
+from databricks.feature_store import entities as fs_entities
 
 from telco_churn.utils.logger_utils import get_logger
 
@@ -113,7 +115,6 @@ class DataPreprocessor:
         -------
 
         """
-
         _logger.info('Running Data Preprocessing steps...')
 
         # Convert Spark DataFrame to koalas
@@ -137,3 +138,23 @@ class DataPreprocessor:
             ohe_psdf = self.drop_missing_values(ohe_psdf)
 
         return ohe_psdf
+
+
+def create_and_write_feature_table(df: SparkDataFrame,
+                                   feature_table_name: str,
+                                   keys: Union[str, list],
+                                   description: str,
+                                   mode: str = 'overwrite') -> fs_entities.feature_table.FeatureTable:
+
+    fs = FeatureStoreClient()
+
+    feature_table = fs.create_table(
+        name=feature_table_name,
+        primary_keys=keys,
+        schema=df.schema,
+        description=description
+    )
+
+    fs.write_table(df=df, name=feature_table_name, mode=mode)
+
+    return feature_table

@@ -1,6 +1,6 @@
 custom:
   basic-cluster-props: &basic-cluster-props
-    spark_version: "9.1.x-cpu-ml-scala2.12"
+    spark_version: "10.4.x-cpu-ml-scala2.12"
 
   basic-static-cluster: &basic-static-cluster
     new_cluster:
@@ -25,3 +25,9 @@ environments:
         spark_python_task:
           python_file: "file://tests/integration/sample_test.py"
           parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]
+      - name: "feature-table-creation"
+        <<:
+          - *basic-static-cluster
+        spark_python_task:
+          python_file: "file://telco_churn/jobs/feature_table_creator.py"
+          parameters: ["--conf-file", "file:fuse://conf/feature_table_creation.yml"]
