@@ -9,7 +9,8 @@ class FeatureTableCreator(Job):
 
     def setup(self):
 
-        # TODO: handle existing feature table more gracefully. Currently to start afresh involves deleting feature table via UI
+        # TODO: handle existing feature table more gracefully.
+        #  Currently to start afresh involves deleting feature table via UI
 
         database_name = self.conf['feature_store_params']['database_name']
         table_name = self.conf['feature_store_params']['table_name']
