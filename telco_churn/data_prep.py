@@ -18,15 +18,18 @@ class DataPreprocessor:
     Data preprocessing class
 
     Attributes:
-        cat_cols (list): List of categorical columns
         label_col (str): Name of original label column in input data
+        ohe (bool): Flag to indicate whether or not to one hot encode categorical columns
+        cat_cols (list): List of categorical columns. Only required if ohe=True
         drop_missing (bool): Flag to indicate whether or not to drop missing values
     """
-    cat_cols: list
     label_col: str = 'churnString'
+    ohe: bool = False
+    cat_cols: list = None
     drop_missing: bool = True
 
-    def pyspark_pandas_ohe(self, psdf: ps.DataFrame) -> ps.DataFrame:
+    @staticmethod
+    def pyspark_pandas_ohe(psdf: ps.DataFrame, cat_cols: list) -> ps.DataFrame:
         """
         Take a pyspark.pandas DataFrame and convert a list of categorical variables (columns) into dummy/indicator
         variables, also known as one hot encoding.
@@ -35,12 +38,14 @@ class DataPreprocessor:
         ----------
         psdf : ps.DataFrame
             pyspark.pandas DataFrame
+        cat_cols : list
+            List of categorical features
 
         Returns
         -------
         ps.DataFrame
         """
-        return ps.get_dummies(psdf, columns=self.cat_cols, dtype='int64')
+        return ps.get_dummies(psdf, columns=cat_cols, dtype='int64')
 
     def process_label(self, psdf: ps.DataFrame, rename_to: str = 'churn') -> ps.DataFrame:
         """
@@ -106,7 +111,6 @@ class DataPreprocessor:
 
     def run(self, df: SparkDataFrame) -> ps.DataFrame:
         """
-        Method to chain
         Parameters
         ----------
         df
@@ -120,24 +124,27 @@ class DataPreprocessor:
         # Convert Spark DataFrame to koalas
         psdf = df.to_pandas_on_spark()
 
-        # OHE
-        _logger.info('Applying one-hot-encoding')
-        ohe_psdf = self.pyspark_pandas_ohe(psdf)
-
         # Convert label to int and rename column
         _logger.info(f'Processing label: {self.label_col}')
-        ohe_psdf = self.process_label(ohe_psdf, rename_to='churn')
+        psdf = self.process_label(psdf, rename_to='churn')
 
-        # Clean up column names
-        _logger.info(f'Renaming columns')
-        ohe_psdf = self.process_col_names(ohe_psdf)
+        # OHE
+        if self.ohe:
+            _logger.info('Applying one-hot-encoding')
+            if self.cat_cols is None:
+                raise RuntimeError('cat_cols must be provided if ohe=True')
+            psdf = self.pyspark_pandas_ohe(psdf, self.cat_cols)
+
+            # Clean up column names resulting from OHE
+            _logger.info(f'Renaming columns')
+            psdf = self.process_col_names(psdf)
 
         # Drop missing values
         if self.drop_missing:
             _logger.info(f'Dropping missing values')
-            ohe_psdf = self.drop_missing_values(ohe_psdf)
+            psdf = self.drop_missing_values(psdf)
 
-        return ohe_psdf
+        return psdf
 
 
 def create_and_write_feature_table(df: SparkDataFrame,
@@ -145,7 +152,20 @@ def create_and_write_feature_table(df: SparkDataFrame,
                                    keys: Union[str, list],
                                    description: str,
                                    mode: str = 'overwrite') -> fs_entities.feature_table.FeatureTable:
+    """
 
+    Parameters
+    ----------
+    df
+    feature_table_name
+    keys
+    description
+    mode
+
+    Returns
+    -------
+    databricks.feature_store.entities.feature_table.FeatureTable
+    """
     fs = FeatureStoreClient()
 
     feature_table = fs.create_table(

@@ -8,6 +8,7 @@ data_prep_params:
              'techSupport', 'streamingTV', 'streamingMovies',
              'contract', 'paperlessBilling', 'paymentMethod']
   label_col: 'churnString'
+  ohe: False
   drop_missing: True
 
 feature_store_params:

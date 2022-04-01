@@ -19,6 +19,12 @@ environments:
         spark_python_task:
           python_file: "file://telco_churn/jobs/feature_table_creator.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/feature_table_creation.yml"]
+      - name: "model-train"
+        <<:
+          - *basic-static-cluster
+        spark_python_task:
+          python_file: "file://telco_churn/jobs/model_train.py"
+          parameters: ["--conf-file", "file:fuse://conf/job_configs/feature_table_creation.yml"]
       - name: "e2e-mlops-sample-integration-test"
         <<:
           - *basic-static-cluster

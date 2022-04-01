@@ -9,11 +9,17 @@ class FeatureTableCreator(Job):
 
     def setup(self):
 
+        # TODO: handle existing feature table more gracefully.
+        #  Currently to start afresh involves deleting feature table via UI
+
         database_name = self.conf['feature_store_params']['database_name']
+        table_name = self.conf['feature_store_params']['table_name']
 
         self.logger.info(f'Creating database {database_name} if not exists')
         self.spark.sql(f'create database if not exists {database_name};')
         self.spark.sql(f'use {database_name};')
+
+        self.spark.sql(f'drop table if exists {table_name};')
 
     def run_data_ingest(self):
         """
@@ -57,7 +63,7 @@ class FeatureTableCreator(Job):
 
         self.logger.info('=======Create Feature Table=======')
         database_name = self.conf['feature_store_params']['database_name']
-        table_name = self.conf['feature_store_params']['database_name']
+        table_name = self.conf['feature_store_params']['table_name']
         feature_table_name = f'{database_name}.{table_name}'
 
         create_and_write_feature_table(preproc_df,
