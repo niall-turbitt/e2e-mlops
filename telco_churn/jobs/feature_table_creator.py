@@ -47,6 +47,8 @@ class FeatureTableCreator(Job):
         self.logger.info("Launching FeatureTableCreator job")
         self.setup()
 
+        # TODO - insert check to see if feature table already exists
+
         self.logger.info('=======Data Ingest=======')
         input_df = self.run_data_ingest()
 
@@ -70,4 +72,3 @@ class FeatureTableCreator(Job):
 if __name__ == "__main__":
     job = FeatureTableCreator()
     job.launch()
-
