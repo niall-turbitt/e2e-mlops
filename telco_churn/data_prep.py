@@ -1,114 +1,112 @@
+from dataclasses import dataclass
+
 import pyspark.pandas as ps
 from pyspark.sql.dataframe import DataFrame as SparkDataFrame
 
 from databricks.feature_store import feature_table
 
 
-def pyspark_pandas_ohe(psdf: ps.DataFrame, columns: list) -> ps.DataFrame:
-    """
-    Take a pyspark.pandas DataFrame and convert a list of categorical variables (columns) into dummy/indicator
-    variables, also known as one hot encoding.
+@dataclass
+class DataPreprocessor:
+    cat_cols: list
+    label_col: str = 'churnString'
+    drop_missing: bool = True
 
-    Parameters
-    ----------
-    psdf : ps.DataFrame
-        pyspark.pandas DataFrame
-    columns : list
-        List of columns to one-hot encode
+    def pyspark_pandas_ohe(self, psdf: ps.DataFrame) -> ps.DataFrame:
+        """
+        Take a pyspark.pandas DataFrame and convert a list of categorical variables (columns) into dummy/indicator
+        variables, also known as one hot encoding.
 
-    Returns
-    -------
-    ps.DataFrame
-    """
-    ohe_psdf = ps.get_dummies(psdf, columns=columns, dtype='int64')
+        Parameters
+        ----------
+        psdf : ps.DataFrame
+            pyspark.pandas DataFrame
 
-    return ohe_psdf
+        Returns
+        -------
+        ps.DataFrame
+        """
+        return ps.get_dummies(psdf, columns=self.cat_cols, dtype='int64')
 
+    def process_label(self, psdf: ps.DataFrame, rename_to: str = 'churn') -> ps.DataFrame:
+        """
+        Convert label to int and rename column
 
-def process_label(psdf: ps.DataFrame, label_col: str, rename_to: str = 'churn') -> ps.DataFrame:
-    """
-    Convert label to int and rename column
+        TODO: add test
 
-    Parameters
-    ----------
-    psdf : ps.DataFrame
-        pyspark.pandas DataFrame
-    label_col : str
-        Name of the original label column
-    rename_to : str
-        Name of new label column name
+        Parameters
+        ----------
+        psdf : ps.DataFrame
+            pyspark.pandas DataFrame
+        label_col : str
+            Name of the original label column
+        rename_to : str
+            Name of new label column name
 
-    Returns
-    -------
-    ps.DataFrame
-    """
-    psdf[label_col] = psdf[label_col].map({'Yes': 1, 'No': 0})
-    psdf = psdf.astype({label_col: 'int32'})
-    psdf = psdf.rename(columns={label_col: rename_to})
+        Returns
+        -------
+        ps.DataFrame
+        """
+        psdf[self.label_col] = psdf[self.label_col].map({'Yes': 1, 'No': 0})
+        psdf = psdf.astype({self.label_col: 'int32'})
+        psdf = psdf.rename(columns={self.label_col: rename_to})
 
-    return psdf
+        return psdf
 
+    @staticmethod
+    def process_col_names(psdf: ps.DataFrame) -> ps.DataFrame:
+        """
+        Strip parentheses and spaces from existing column names, replacing spaces with '_'
 
-def process_col_names(psdf: ps.DataFrame) -> ps.DataFrame:
-    """
-    Strip parentheses and spaces from existing column names, replacing spaces with '_'
+        TODO: add test
 
-    Parameters
-    ----------
-    psdf : ps.DataFrame
-        pyspark.pandas DataFrame
+        Parameters
+        ----------
+        psdf : ps.DataFrame
+            pyspark.pandas DataFrame
 
-    Returns
-    -------
-    ps.DataFrame
-    """
-    cols = psdf.columns.to_list()
-    new_col_names = [col.replace(' ', '').replace('(', '_').replace(')', '') for col in cols]
+        Returns
+        -------
+        ps.DataFrame
+        """
+        cols = psdf.columns.to_list()
+        new_col_names = [col.replace(' ', '').replace('(', '_').replace(')', '') for col in cols]
 
-    # Update column names to new column names
-    psdf.columns = new_col_names
+        # Update column names to new column names
+        psdf.columns = new_col_names
 
-    return psdf
+        return psdf
 
+    @staticmethod
+    def drop_missing_values(psdf: ps.DataFrame) -> ps.DataFrame:
+        """
+        Remove missing values
 
-def drop_missing_values(psdf: ps.DataFrame) -> ps.DataFrame:
-    """
-    Remove missing values
+        Parameters
+        ----------
+        psdf
 
-    Parameters
-    ----------
-    psdf
+        Returns
+        -------
+        ps.DataFrame
+        """
+        return psdf.dropna()
 
-    Returns
-    -------
-    ps.DataFrame
-    """
-    return psdf.dropna()
+    def run(self, df: SparkDataFrame):
+        # Convert Spark DataFrame to koalas
+        psdf = df.to_pandas_on_spark()
 
+        # OHE
+        ohe_psdf = self.pyspark_pandas_ohe(psdf)
 
-def compute_churn_features(df: SparkDataFrame):
-    # Convert Spark DataFrame to koalas
-    psdf = df.to_pandas_on_spark()
+        # Convert label to int and rename column
+        ohe_psdf = self.process_label(ohe_psdf, rename_to='churn')
 
-    cat_cols = ['gender', 'partner', 'dependents',
-                'phoneService', 'multipleLines', 'internetService',
-                'onlineSecurity', 'onlineBackup', 'deviceProtection',
-                'techSupport', 'streamingTV', 'streamingMovies',
-                'contract', 'paperlessBilling', 'paymentMethod']
-    label_col = 'churnString'
-    drop_missing = True
+        # Clean up column names
+        ohe_psdf = self.process_col_names(ohe_psdf)
 
-    # OHE
-    ohe_psdf = pyspark_pandas_ohe(psdf, columns=cat_cols)
+        # Drop missing values
+        if self.drop_missing:
+            ohe_psdf = self.drop_missing_values(ohe_psdf)
 
-    # Convert label to int and rename column
-    ohe_psdf = process_label(ohe_psdf, label_col=label_col, rename_to='churn')
-
-    # Clean up column names
-    ohe_psdf = process_col_names(ohe_psdf)
-
-    # Drop missing values
-    if drop_missing:
-        ohe_psdf = drop_missing_values(ohe_psdf)
-
-    return ohe_psdf
+        return ohe_psdf
