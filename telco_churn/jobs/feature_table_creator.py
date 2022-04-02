@@ -23,29 +23,23 @@ class FeatureTableCreator(Job):
 
     def run_data_ingest(self):
         """
-
         Returns
         -------
-
         """
         return spark_load_table(table=self.conf['data_ingest_params']['input_table'])
 
     def run_data_prep(self, input_df: SparkDataFrame) -> SparkDataFrame:
         """
-
         Parameters
         ----------
         input_df
-
         Returns
         -------
-
         """
         data_preprocessor = DataPreprocessor(cat_cols=self.conf['data_prep_params']['cat_cols'],
                                              label_col=self.conf['data_prep_params']['label_col'],
                                              drop_missing=self.conf['data_prep_params']['drop_missing'])
-        preproc_psdf = data_preprocessor.run(input_df)
-        preproc_df = preproc_psdf.to_spark()
+        preproc_df = data_preprocessor.run(input_df)
 
         return preproc_df
 
@@ -54,6 +48,7 @@ class FeatureTableCreator(Job):
         self.setup()
 
         # TODO - insert check to see if feature table already exists
+        # TODO - delete feature table if already exisits?
 
         self.logger.info('=======Data Ingest=======')
         input_df = self.run_data_ingest()

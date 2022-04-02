@@ -16,7 +16,6 @@ _logger = get_logger()
 class DataPreprocessor:
     """
     Data preprocessing class
-
     Attributes:
         label_col (str): Name of original label column in input data
         ohe (bool): Flag to indicate whether or not to one hot encode categorical columns
@@ -33,14 +32,12 @@ class DataPreprocessor:
         """
         Take a pyspark.pandas DataFrame and convert a list of categorical variables (columns) into dummy/indicator
         variables, also known as one hot encoding.
-
         Parameters
         ----------
         psdf : ps.DataFrame
             pyspark.pandas DataFrame
         cat_cols : list
             List of categorical features
-
         Returns
         -------
         ps.DataFrame
@@ -50,16 +47,13 @@ class DataPreprocessor:
     def process_label(self, psdf: ps.DataFrame, rename_to: str = 'churn') -> ps.DataFrame:
         """
         Convert label to int and rename label column
-
         TODO: add test
-
         Parameters
         ----------
         psdf : ps.DataFrame
             pyspark.pandas DataFrame
         rename_to : str
             Name of new label column name
-
         Returns
         -------
         ps.DataFrame
@@ -74,14 +68,11 @@ class DataPreprocessor:
     def process_col_names(psdf: ps.DataFrame) -> ps.DataFrame:
         """
         Strip parentheses and spaces from existing column names, replacing spaces with '_'
-
         TODO: add test
-
         Parameters
         ----------
         psdf : ps.DataFrame
             pyspark.pandas DataFrame
-
         Returns
         -------
         ps.DataFrame
@@ -98,26 +89,22 @@ class DataPreprocessor:
     def drop_missing_values(psdf: ps.DataFrame) -> ps.DataFrame:
         """
         Remove missing values
-
         Parameters
         ----------
         psdf
-
         Returns
         -------
         ps.DataFrame
         """
         return psdf.dropna()
 
-    def run(self, df: SparkDataFrame) -> ps.DataFrame:
+    def run(self, df: SparkDataFrame) -> SparkDataFrame:
         """
         Parameters
         ----------
         df
-
         Returns
         -------
-
         """
         _logger.info('Running Data Preprocessing steps...')
 
@@ -144,7 +131,10 @@ class DataPreprocessor:
             _logger.info(f'Dropping missing values')
             psdf = self.drop_missing_values(psdf)
 
-        return psdf
+        # Return as Spark DataFrame
+        preproc_df = psdf.to_spark()
+
+        return preproc_df
 
 
 def create_and_write_feature_table(df: SparkDataFrame,
@@ -153,7 +143,6 @@ def create_and_write_feature_table(df: SparkDataFrame,
                                    description: str,
                                    mode: str = 'overwrite') -> fs_entities.feature_table.FeatureTable:
     """
-
     Parameters
     ----------
     df
@@ -161,7 +150,6 @@ def create_and_write_feature_table(df: SparkDataFrame,
     keys
     description
     mode
-
     Returns
     -------
     databricks.feature_store.entities.feature_table.FeatureTable
