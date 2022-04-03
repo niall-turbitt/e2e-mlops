@@ -1,6 +1,7 @@
+from dataclasses import dataclass
+
 import pyspark.sql.dataframe
 
-from telco_churn.common import Job
 from telco_churn import data_ingest
 from telco_churn.data_prep import DataPreprocessor
 from telco_churn.utils import feature_store_utils
@@ -10,9 +11,18 @@ from telco_churn.utils.logger_utils import get_logger
 _logger = get_logger()
 
 
-class FeatureTableCreator(Job):
+@dataclass
+class FeatureTableCreator:
+    """
+    Class to execute a pipeline to create a Feature Store table, and labels table
+    """
+    data_ingest_params: dict
+    data_prep_params: dict
+    feature_store_params: dict
+    labels_table_params: dict
 
-    def setup(self, database_name: str, table_name: str) -> None:
+    @staticmethod
+    def setup(database_name: str, table_name: str) -> None:
         """
         Set up database to use. Create the database {database_name} if it doesn't exist, and drop the table {table_name}
         if it exists
@@ -26,9 +36,9 @@ class FeatureTableCreator(Job):
             Drop table if it already exists
         """
         _logger.info(f'Creating database {database_name} if not exists')
-        self.spark.sql(f'create database if not exists {database_name};')
-        self.spark.sql(f'use {database_name};')
-        self.spark.sql(f'drop table if exists {table_name};')
+        spark.sql(f'create database if not exists {database_name};')
+        spark.sql(f'use {database_name};')
+        spark.sql(f'drop table if exists {table_name};')
 
     def run_data_ingest(self) -> pyspark.sql.dataframe.DataFrame:
         """
@@ -39,7 +49,7 @@ class FeatureTableCreator(Job):
         pyspark.sql.dataframe.DataFrame
             Input Spark DataFrame
         """
-        return data_ingest.spark_load_table(table=self.conf['data_ingest_params']['input_table'])
+        return data_ingest.spark_load_table(table=self.data_ingest_params['input_table'])
 
     def run_data_prep(self, input_df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
         """
@@ -54,12 +64,13 @@ class FeatureTableCreator(Job):
         -------
         pyspark.sql.dataframe.DataFrame
         """
-        data_preprocessor = DataPreprocessor(**self.conf['data_prep_params'])
+        data_preprocessor = DataPreprocessor(**self.data_prep_params)
         preproc_df = data_preprocessor.run(input_df)
 
         return preproc_df
 
-    def run_feature_table_create(self, df: pyspark.sql.dataframe.DataFrame, database_name: str, table_name: str):
+    def run_feature_table_create(self, df: pyspark.sql.dataframe.DataFrame,
+                                 database_name: str, table_name: str) -> None:
         """
 
         Parameters
@@ -78,14 +89,14 @@ class FeatureTableCreator(Job):
         # TODO: refactor the following
         # Store only features for each customerID, storing customerID, churn in separate churn_labels table
         # During model training we will use the churn_labels table to join features into
-        features_df = df.drop(self.conf['data_prep_params']['label_col'])
+        features_df = df.drop(self.data_prep_params['label_col'])
         _logger.info(f'Creating and writing features to feature table: {database_name}.{table_name}')
         feature_store_utils.create_and_write_feature_table(features_df,
                                                            feature_table_name,
-                                                           primary_keys=self.conf['feature_store_params']['primary_keys'],
-                                                           description=self.conf['feature_store_params']['description'])
+                                                           primary_keys=self.feature_store_params['primary_keys'],
+                                                           description=self.feature_store_params['description'])
 
-    def run_labels_table_create(self, df: pyspark.sql.dataframe.DataFrame):
+    def run_labels_table_create(self, df: pyspark.sql.dataframe.DataFrame) -> None:
         """
 
         Parameters
@@ -94,19 +105,19 @@ class FeatureTableCreator(Job):
             Spark DataFrame containing primary keys column and label column
         """
 
-        if type(self.conf['feature_store_params']['primary_keys']) is str:
-            labels_table_cols = [self.conf['feature_store_params']['primary_keys'],
-                                 self.conf['labels_table_params']['label_col']]
-        elif type(self.conf['feature_store_params']['primary_keys']) is list:
-            labels_table_cols = self.conf['feature_store_params']['primary_keys'] + \
-                                [self.conf['labels_table_params']['label_col']]
+        if type(self.feature_store_params['primary_keys']) is str:
+            labels_table_cols = [self.feature_store_params['primary_keys'],
+                                 self.labels_table_params['label_col']]
+        elif type(self.feature_store_params['primary_keys']) is list:
+            labels_table_cols = self.feature_store_params['primary_keys'] + \
+                                [self.labels_table_params['label_col']]
         else:
             raise RuntimeError(
-                f'{self.conf["feature_store_params"]["primary_keys"]} must be of either str of list type')
+                f'{self.feature_store_params["primary_keys"]} must be of either str of list type')
 
-        labels_database_name = self.conf['labels_table_params']['database_name']
-        labels_table_name = self.conf['labels_table_params']['table_name']
-        labels_dbfs_path = self.conf["labels_table_params"]["dbfs_path"]
+        labels_database_name = self.labels_table_params['database_name']
+        labels_table_name = self.labels_table_params['table_name']
+        labels_dbfs_path = self.labels_table_params['dbfs_path']
         # Create database if not exists, drop table if it already exists
         self.setup(database_name=labels_database_name, table_name=labels_table_name)
         # DataFrame of customerID/churn labels
@@ -117,12 +128,10 @@ class FeatureTableCreator(Job):
                              USING DELTA LOCATION '{labels_dbfs_path}';""")
         _logger.info(f'Created labels table: {labels_database_name}.{labels_table_name}')
 
-    def launch(self) -> None:
+    def run(self) -> None:
         """
-        Launch FeatureStoreTableCreator job
+        Run feature table creation pipeline
         """
-        _logger.info("Launching FeatureTableCreator job")
-
         # TODO - insert check to see if feature table already exists
         # TODO - delete feature table if already exisits?
 
@@ -133,16 +142,9 @@ class FeatureTableCreator(Job):
         preproc_df = self.run_data_prep(input_df)
 
         _logger.info('==========Create Feature Table==========')
-        fs_database_name = self.conf['feature_store_params']['database_name']
-        fs_table_name = self.conf['feature_store_params']['table_name']
+        fs_database_name = self.feature_store_params['database_name']
+        fs_table_name = self.feature_store_params['table_name']
         self.run_feature_table_create(preproc_df, database_name=fs_database_name, table_name=fs_table_name)
 
         _logger.info('==========Create Labels Table==========')
         self.run_labels_table_create(preproc_df)
-
-        _logger.info("FeatureTableCreator job finished!")
-
-
-if __name__ == "__main__":
-    job = FeatureTableCreator()
-    job.launch()
