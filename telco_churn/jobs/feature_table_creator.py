@@ -1,8 +1,9 @@
-from pyspark.sql.dataframe import DataFrame as SparkDataFrame
+import pyspark.sql.dataframe
 
 from telco_churn.common import Job
-from telco_churn.data_ingest import spark_load_table
-from telco_churn.data_prep import DataPreprocessor, create_and_write_feature_table
+from telco_churn import data_ingest
+from telco_churn.data_prep import DataPreprocessor
+from telco_churn.utils import feature_store_utils
 
 
 class FeatureTableCreator(Job):
@@ -21,14 +22,14 @@ class FeatureTableCreator(Job):
 
         self.spark.sql(f'drop table if exists {table_name};')
 
-    def run_data_ingest(self):
+    def run_data_ingest(self) -> pyspark.sql.dataframe.DataFrame:
         """
         Returns
         -------
         """
-        return spark_load_table(table=self.conf['data_ingest_params']['input_table'])
+        return data_ingest.spark_load_table(table=self.conf['data_ingest_params']['input_table'])
 
-    def run_data_prep(self, input_df: SparkDataFrame) -> SparkDataFrame:
+    def run_data_prep(self, input_df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
         """
         Parameters
         ----------
@@ -61,11 +62,10 @@ class FeatureTableCreator(Job):
         table_name = self.conf['feature_store_params']['table_name']
         feature_table_name = f'{database_name}.{table_name}'
 
-        create_and_write_feature_table(preproc_df,
-                                       feature_table_name,
-                                       keys=self.conf['feature_store_params']['keys'],
-                                       description=self.conf['feature_store_params']['description'],
-                                       mode='overwrite')
+        feature_store_utils.create_and_write_feature_table(preproc_df,
+                                                           feature_table_name,
+                                                           primary_keys=self.conf['feature_store_params']['primary_keys'],
+                                                           description=self.conf['feature_store_params']['description'])
 
         self.logger.info("FeatureTableCreator job finished!")
 

@@ -15,5 +15,5 @@ data_prep_params:
 feature_store_params:
   database_name: 'e2e_mlops_testing'
   table_name: 'churn_features'
-  keys: 'customerID'
+  primary_keys: 'customerID'
   description: 'These features are derived from the field_demos_retail.bronze_customers table in the lakehouse.  We created dummy variables for the categorical columns, cleaned up their names, and added a boolean flag for whether the customer churned or not.  No aggregations were performed.'
