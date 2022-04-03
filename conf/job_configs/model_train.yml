@@ -1,3 +1,11 @@
 feature_store_params:
+  table_name: 'churn_features'
+  primary_keys: 'customerID'
+  # If feature_names not provided, will use all features in the feature table (excluding primary keys and label_col)
+#  feature_names: ['gender', 'seniorCitizen', 'partner', 'dependents', 'tenure',
+#                  'phoneService', 'multipleLines', 'internetService', 'onlineSecurity',
+#                  'onlineBackup', 'deviceProtection', 'techSupport', 'streamingTV',
+#                  'streamingMovies', 'contract', 'paperlessBilling', 'paymentMethod',
+#                  'monthlyCharges', 'totalCharges']
 
 model_params:

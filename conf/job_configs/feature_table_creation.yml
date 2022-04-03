@@ -4,7 +4,7 @@ data_ingest_params:
 data_prep_params:
   label_col: 'churnString'
   ohe: False
-  # Only require cat_cols if ohe=True
+#  # Only require cat_cols if ohe=True
 #  cat_cols: ['gender', 'partner', 'dependents',
 #             'phoneService', 'multipleLines', 'internetService',
 #             'onlineSecurity', 'onlineBackup', 'deviceProtection',
@@ -17,3 +17,9 @@ feature_store_params:
   table_name: 'churn_features'
   primary_keys: 'customerID'
   description: 'These features are derived from the field_demos_retail.bronze_customers table in the lakehouse.  We created dummy variables for the categorical columns, cleaned up their names, and added a boolean flag for whether the customer churned or not.  No aggregations were performed.'
+
+labels_table_params:
+  label_col: 'churn'
+  database_name: 'e2e_mlops_testing'
+  table_name: 'churn_labels'
+  dbfs_path: 'dbfs:/tmp/e2e_mlops/churn_labels.delta'
