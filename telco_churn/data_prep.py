@@ -1,11 +1,7 @@
 from dataclasses import dataclass
-from typing import Union
 
+import pyspark
 import pyspark.pandas as ps
-from pyspark.sql.dataframe import DataFrame as SparkDataFrame
-
-from databricks.feature_store import FeatureStoreClient
-from databricks.feature_store import entities as fs_entities
 
 from telco_churn.utils.logger_utils import get_logger
 
@@ -16,7 +12,6 @@ _logger = get_logger()
 class DataPreprocessor:
     """
     Data preprocessing class
-
     Attributes:
         label_col (str): Name of original label column in input data
         ohe (bool): Flag to indicate whether or not to one hot encode categorical columns
@@ -29,40 +24,35 @@ class DataPreprocessor:
     drop_missing: bool = True
 
     @staticmethod
-    def pyspark_pandas_ohe(psdf: ps.DataFrame, cat_cols: list) -> ps.DataFrame:
+    def pyspark_pandas_ohe(psdf: ps.DataFrame, cat_cols: list) -> pyspark.pandas.DataFrame:
         """
         Take a pyspark.pandas DataFrame and convert a list of categorical variables (columns) into dummy/indicator
         variables, also known as one hot encoding.
-
         Parameters
         ----------
-        psdf : ps.DataFrame
-            pyspark.pandas DataFrame
+        psdf : pyspark.pandas.DataFrame
+            pyspark.pandas DataFrame to OHE
         cat_cols : list
             List of categorical features
-
         Returns
         -------
-        ps.DataFrame
+        pyspark.pandas.DataFrame
         """
         return ps.get_dummies(psdf, columns=cat_cols, dtype='int64')
 
-    def process_label(self, psdf: ps.DataFrame, rename_to: str = 'churn') -> ps.DataFrame:
+    def process_label(self, psdf: pyspark.pandas.DataFrame, rename_to: str = 'churn') -> pyspark.pandas.DataFrame:
         """
         Convert label to int and rename label column
-
         TODO: add test
-
         Parameters
         ----------
-        psdf : ps.DataFrame
+        psdf : pyspark.pandas.DataFrame
             pyspark.pandas DataFrame
         rename_to : str
             Name of new label column name
-
         Returns
         -------
-        ps.DataFrame
+        pyspark.pandas.DataFrame
         """
         psdf[self.label_col] = psdf[self.label_col].map({'Yes': 1, 'No': 0})
         psdf = psdf.astype({self.label_col: 'int32'})
@@ -71,20 +61,17 @@ class DataPreprocessor:
         return psdf
 
     @staticmethod
-    def process_col_names(psdf: ps.DataFrame) -> ps.DataFrame:
+    def process_col_names(psdf: pyspark.pandas.DataFrame) -> pyspark.pandas.DataFrame:
         """
         Strip parentheses and spaces from existing column names, replacing spaces with '_'
-
         TODO: add test
-
         Parameters
         ----------
-        psdf : ps.DataFrame
+        psdf : pyspark.pandas.DataFrame
             pyspark.pandas DataFrame
-
         Returns
         -------
-        ps.DataFrame
+        pyspark.pandas.DataFrame
         """
         cols = psdf.columns.to_list()
         new_col_names = [col.replace(' ', '').replace('(', '_').replace(')', '') for col in cols]
@@ -95,29 +82,25 @@ class DataPreprocessor:
         return psdf
 
     @staticmethod
-    def drop_missing_values(psdf: ps.DataFrame) -> ps.DataFrame:
+    def drop_missing_values(psdf: pyspark.pandas.DataFrame) -> pyspark.pandas.DataFrame:
         """
         Remove missing values
-
         Parameters
         ----------
         psdf
-
         Returns
         -------
-        ps.DataFrame
+        pyspark.pandas.DataFrame
         """
         return psdf.dropna()
 
-    def run(self, df: SparkDataFrame) -> ps.DataFrame:
+    def run(self, df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
         """
         Parameters
         ----------
         df
-
         Returns
         -------
-
         """
         _logger.info('Running Data Preprocessing steps...')
 
@@ -144,37 +127,7 @@ class DataPreprocessor:
             _logger.info(f'Dropping missing values')
             psdf = self.drop_missing_values(psdf)
 
-        return psdf
+        # Return as Spark DataFrame
+        preproc_df = psdf.to_spark()
 
-
-def create_and_write_feature_table(df: SparkDataFrame,
-                                   feature_table_name: str,
-                                   keys: Union[str, list],
-                                   description: str,
-                                   mode: str = 'overwrite') -> fs_entities.feature_table.FeatureTable:
-    """
-
-    Parameters
-    ----------
-    df
-    feature_table_name
-    keys
-    description
-    mode
-
-    Returns
-    -------
-    databricks.feature_store.entities.feature_table.FeatureTable
-    """
-    fs = FeatureStoreClient()
-
-    feature_table = fs.create_table(
-        name=feature_table_name,
-        primary_keys=keys,
-        schema=df.schema,
-        description=description
-    )
-
-    fs.write_table(df=df, name=feature_table_name, mode=mode)
-
-    return feature_table
+        return preproc_df
