@@ -24,27 +24,37 @@ class FeatureTableCreator(Job):
 
     def run_data_ingest(self) -> pyspark.sql.dataframe.DataFrame:
         """
+        Run data ingest step
+
         Returns
         -------
+        pyspark.sql.dataframe.DataFrame
+            Input Spark DataFrame
         """
         return data_ingest.spark_load_table(table=self.conf['data_ingest_params']['input_table'])
 
     def run_data_prep(self, input_df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
         """
+        Run data preparation step
+
         Parameters
         ----------
-        input_df
+        input_df : pyspark.sql.dataframe.DataFrame
+            Input Spark DataFrame
+
         Returns
         -------
+        pyspark.sql.dataframe.DataFrame
         """
-        data_preprocessor = DataPreprocessor(cat_cols=self.conf['data_prep_params']['cat_cols'],
-                                             label_col=self.conf['data_prep_params']['label_col'],
-                                             drop_missing=self.conf['data_prep_params']['drop_missing'])
+        data_preprocessor = DataPreprocessor(**self.conf['data_prep_params'])
         preproc_df = data_preprocessor.run(input_df)
 
         return preproc_df
 
-    def launch(self):
+    def launch(self) -> None:
+        """
+        Launch FeatureStoreTableCreator job
+        """
         self.logger.info("Launching FeatureTableCreator job")
         self.setup()
 

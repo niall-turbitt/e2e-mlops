@@ -2,6 +2,7 @@ from typing import Union, List
 
 import pyspark
 
+import databricks
 from databricks.feature_store import FeatureStoreClient
 
 
