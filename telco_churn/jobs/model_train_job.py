@@ -1,5 +1,3 @@
-import mlflow
-
 from telco_churn.common import Job
 from telco_churn.model_train import ModelTrain
 

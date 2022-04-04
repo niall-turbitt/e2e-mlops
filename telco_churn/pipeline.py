@@ -2,7 +2,7 @@ from sklearn.compose import make_column_selector, ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from xgboost import XGBClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 
 class PipelineCreator:
@@ -25,14 +25,11 @@ class PipelineCreator:
             sparse_threshold=0
         )
 
-        standardizer = StandardScaler()
-        xgb_classifier = XGBClassifier(use_label_encoder=False,
-                                       **model_params)
+        rf_classifier = RandomForestClassifier(**model_params)
 
         pipeline = Pipeline([
             ("preprocessor", preprocessor),
-            ("standardizer", standardizer),
-            ("classifier", xgb_classifier),
+            ("classifier", rf_classifier),
         ])
 
         return pipeline

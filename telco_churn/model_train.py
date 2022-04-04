@@ -21,7 +21,6 @@ _logger = get_logger()
 
 @dataclass
 class ModelTrain:
-
     mlflow_params: dict
     data_input: dict
     pipeline_params: dict
@@ -29,6 +28,9 @@ class ModelTrain:
     conf: dict = None
 
     def _set_experiment(self):
+        """
+        Set MLflow experiment. Use one of either experiment_id or experiment_path
+        """
         if 'experiment_id' in self.mlflow_params:
             exp = mlflow.get_experiment(self.mlflow_params['experiment_id'])
             mlflow.set_experiment(exp.name)
@@ -41,10 +43,13 @@ class ModelTrain:
     def _get_feature_table_lookup(feature_store_params: dict) \
             -> List[databricks.feature_store.entities.feature_lookup.FeatureLookup]:
         """
+        Create list of FeatureLookup for single feature store table. The FeatureLookup is a value class used to specify
+        features to use in a TrainingSet.
 
         Parameters
         ----------
-        feature_store_params
+        feature_store_params : dict
+            Dictionary containing the Feature Store table name, and table primary keys
 
         Returns
         -------
@@ -61,7 +66,13 @@ class ModelTrain:
         return feature_table_lookup
 
     def _get_fs_training_set(self) -> databricks.feature_store.training_set.TrainingSet:
+        """
+        Get the Feature Store TrainingSet
 
+        Returns
+        -------
+        databricks.feature_store.training_set.TrainingSet
+        """
         feature_store_params = self.data_input['feature_store_params']
         feature_table_lookup = self._get_feature_table_lookup(feature_store_params)
         labels_df = data_ingest.spark_load_table(self.data_input['labels_table_params']['table_name'])
@@ -73,16 +84,19 @@ class ModelTrain:
                                       exclude_columns=self.data_input['feature_store_params']['primary_keys'])
 
     def _data_preproc(self, fs_training_set: databricks.feature_store.training_set.TrainingSet):
-
         """
+        Load the TrainingSet fortraining. The loaded DataFrame has columns specified by fs_training_set.
+        Loaded Spark DataFrame is converted to pandas DataFrame and split into train/val splits.
+
 
         Parameters
         ----------
-        fs_training_set
+        fs_training_set : databricks.feature_store.training_set.TrainingSet
+            Feature Store TrainingSet
 
         Returns
         -------
-        train-test splits
+        train-val splits
         """
         _logger.info('Load training set from Feature Store, converting to pandas DataFrame')
         training_set_pdf = fs_training_set.load_df().toPandas()
@@ -123,9 +137,8 @@ class ModelTrain:
         return model
 
     def run(self):
-
         self._set_experiment()
-
+        mlflow.autolog()
         # Enable automatic logging of input samples, metrics, parameters, and models
         mlflow.sklearn.autolog(log_input_examples=True, silent=True)
 
@@ -157,12 +170,10 @@ class ModelTrain:
             # Training metrics are logged by MLflow autologging
             # Log metrics for the validation set
             _logger.info('Evaluating and logging metrics')
-            xgbc_val_metrics = mlflow.sklearn.eval_and_log_metrics(model, X_val, y_val,
-                                                                   prefix='val_')
-            print(pd.DataFrame(xgbc_val_metrics, index=[0]))
+            val_metrics = mlflow.sklearn.eval_and_log_metrics(model, X_val, y_val, prefix='val_')
+            print(pd.DataFrame(val_metrics, index=[0]))
 
             if self.mlflow_params['model_registry_name']:
                 _logger.info(f'Registering model: {self.mlflow_params["model_registry_name"]}')
                 mlflow.register_model(f'runs:/{mlflow_run.info.run_id}/fs_model',
                                       name=self.mlflow_params["model_registry_name"])
-
