@@ -1,7 +1,7 @@
 mlflow_params:
   experiment_id: 1366206427888150
   # experiment_path: /Users/niall.turbitt@databricks.com/e2e_mlops
-  run_name: 'baseline_xgboost'
+  run_name: 'baseline_random_forest'
   model_registry_name: 'e2e_mlops_telco_churn'
 
 
@@ -26,8 +26,8 @@ pipeline_params:
 
 
 model_params:
-  learning_rate: 0.001
+  n_estimators: 100
   max_depth: 8
-  min_child_weight': 3
-  subsample: 0.12
+  min_samples_leaf: 1
+  max_features: 'auto'
   random_state: 42
