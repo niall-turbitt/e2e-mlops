@@ -26,6 +26,16 @@ class ModelTrain:
     data_input: dict
     pipeline_params: dict
     model_params: dict
+    conf: dict = None
+
+    def _set_experiment(self):
+        if 'experiment_id' in self.mlflow_params:
+            exp = mlflow.get_experiment(self.mlflow_params['experiment_id'])
+            mlflow.set_experiment(exp.name)
+        elif 'experiment_path' in self.mlflow_params['experiment_path']:
+            mlflow.set_experiment(self.mlflow_params['experiment_path'])
+        else:
+            raise RuntimeError('MLflow experiment_id or experiment_path must be set in mlflow_params')
 
     @staticmethod
     def _get_feature_table_lookup(feature_store_params: dict) \
@@ -114,29 +124,45 @@ class ModelTrain:
 
     def run(self):
 
+        self._set_experiment()
+
         # Enable automatic logging of input samples, metrics, parameters, and models
         mlflow.sklearn.autolog(log_input_examples=True, silent=True)
 
-        # Create Feature Store Training Set
-        fs_training_set = self._get_fs_training_set()
+        with mlflow.start_run(run_name=self.mlflow_params['run_name']) as mlflow_run:
 
-        # Load and preprocess data into train/val splits
-        X_train, X_val, y_train, y_val = self._data_preproc(fs_training_set)
+            if self.conf is not None:
+                # Log config file
+                mlflow.log_dict(self.conf, 'conf.yml')
 
-        model = self.train_baseline(X_train, y_train)
+            # Create Feature Store Training Set
+            fs_training_set = self._get_fs_training_set()
 
-        _logger.info('Logging model to MLflow using Feature Store API')
-        fs.log_model(
-            model,
-            'model',
-            flavor=mlflow.sklearn,
-            training_set=fs_training_set,
-            input_example=X_train[:100],
-            signature=infer_signature(X_train, y_train))
+            # Load and preprocess data into train/val splits
+            X_train, X_val, y_train, y_val = self._data_preproc(fs_training_set)
 
-        # Training metrics are logged by MLflow autologging
-        # Log metrics for the validation set
-        _logger.info('Evaluating and logging metrics')
-        xgbc_val_metrics = mlflow.sklearn.eval_and_log_metrics(model, X_val, y_val,
-                                                               prefix='val_')
-        print(pd.DataFrame(xgbc_val_metrics, index=[0]))
+            # Fit baseline pipeline with XGBoost
+            model = self.train_baseline(X_train, y_train)
+
+            # Log model using Feature Store API
+            _logger.info('Logging model to MLflow using Feature Store API')
+            fs.log_model(
+                model,
+                'fs_model',
+                flavor=mlflow.sklearn,
+                training_set=fs_training_set,
+                input_example=X_train[:100],
+                signature=infer_signature(X_train, y_train))
+
+            # Training metrics are logged by MLflow autologging
+            # Log metrics for the validation set
+            _logger.info('Evaluating and logging metrics')
+            xgbc_val_metrics = mlflow.sklearn.eval_and_log_metrics(model, X_val, y_val,
+                                                                   prefix='val_')
+            print(pd.DataFrame(xgbc_val_metrics, index=[0]))
+
+            if self.mlflow_params['model_registry_name']:
+                _logger.info(f'Registering model: {self.mlflow_params["model_registry_name"]}')
+                mlflow.register_model(f'runs:/{mlflow_run.info.run_id}/fs_model',
+                                      name=self.mlflow_params["model_registry_name"])
+
