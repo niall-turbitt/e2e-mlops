@@ -10,7 +10,7 @@ data_prep_params:
 #             'onlineSecurity', 'onlineBackup', 'deviceProtection',
 #             'techSupport', 'streamingTV', 'streamingMovies',
 #             'contract', 'paperlessBilling', 'paymentMethod']
-  drop_missing: True
+  drop_missing: False
 
 feature_store_params:
   database_name: 'e2e_mlops_testing'

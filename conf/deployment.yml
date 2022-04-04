@@ -23,7 +23,7 @@ environments:
         <<:
           - *basic-static-cluster
         spark_python_task:
-          python_file: "file://telco_churn/jobs/model_train.py"
+          python_file: "file://telco_churn/jobs/model_train_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/feature_table_creation.yml"]
       - name: "e2e-mlops-sample-integration-test"
         <<:

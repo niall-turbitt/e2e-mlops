@@ -26,6 +26,7 @@ class FeatureTableCreator:
         """
         Set up database to use. Create the database {database_name} if it doesn't exist, and drop the table {table_name}
         if it exists
+
         Parameters
         ----------
         database_name : str
