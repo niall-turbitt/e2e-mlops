@@ -1,20 +1,33 @@
-feature_store_params:
-  table_name: 'churn_features'
-  primary_keys: 'customerID'
-  # If feature_names not provided, will use all features in the feature table (excluding primary keys and label_col)
-#  feature_names: ['gender', 'seniorCitizen', 'partner', 'dependents', 'tenure',
-#                  'phoneService', 'multipleLines', 'internetService', 'onlineSecurity',
-#                  'onlineBackup', 'deviceProtection', 'techSupport', 'streamingTV',
-#                  'streamingMovies', 'contract', 'paperlessBilling', 'paymentMethod',
-#                  'monthlyCharges', 'totalCharges']
-
 mlflow_params:
-  experiment_path:
-  run_name:
+  experiment_id: 1366206427888150
+  # experiment_path: /Users/niall.turbitt@databricks.com/e2e_mlops
+  run_name: 'baseline_xgboost'
+  model_registry_name: 'e2e_mlops'
+
+
+data_input:
+  feature_store_params:
+    table_name: 'e2e_mlops_testing.churn_features'
+    primary_keys: 'customerID'
+    # If feature_names not provided, will use all features in the feature table (excluding primary keys and label_col)
+  #  feature_names: ['gender', 'seniorCitizen', 'partner', 'dependents', 'tenure',
+  #                  'phoneService', 'multipleLines', 'internetService', 'onlineSecurity',
+  #                  'onlineBackup', 'deviceProtection', 'techSupport', 'streamingTV',
+  #                  'streamingMovies', 'contract', 'paperlessBilling', 'paymentMethod',
+  #                  'monthlyCharges', 'totalCharges']
+  labels_table_params:
+    table_name: 'e2e_mlops_testing.churn_labels'
+
+
+pipeline_params:
+  label_col: 'churn'
+  random_state: 42
+  test_size: 0.25
+
 
 model_params:
-  learning_rate: 0.008098213761399603
+  learning_rate: 0.001
   max_depth: 8
   min_child_weight': 3
-  subsample: 0.12038118521316003
+  subsample: 0.12
   random_state: 42

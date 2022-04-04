@@ -26,7 +26,8 @@ class PipelineCreator:
         )
 
         standardizer = StandardScaler()
-        xgb_classifier = XGBClassifier(**model_params)
+        xgb_classifier = XGBClassifier(use_label_encoder=False,
+                                       **model_params)
 
         pipeline = Pipeline([
             ("preprocessor", preprocessor),
