@@ -1,12 +1,12 @@
 from dataclasses import dataclass
-import pprint
 from typing import List
+import pprint
 
-import mlflow
 import pandas as pd
 import sklearn
-from mlflow.models import infer_signature
 from sklearn.model_selection import train_test_split
+import mlflow
+from mlflow.models import infer_signature
 
 import databricks
 from databricks.feature_store import FeatureStoreClient, FeatureLookup
@@ -130,6 +130,7 @@ class ModelTrain:
         """
         _logger.info('Creating baseline sklearn pipeline...')
         pipeline = PipelineCreator.make_baseline(self.model_params)
+
         _logger.info('Fitting XGBoostClassifier...')
         _logger.info(f'Model params: {pprint.pformat(self.model_params)}')
         model = pipeline.fit(X_train, y_train)
@@ -138,7 +139,6 @@ class ModelTrain:
 
     def run(self):
         self._set_experiment()
-        mlflow.autolog()
         # Enable automatic logging of input samples, metrics, parameters, and models
         mlflow.sklearn.autolog(log_input_examples=True, silent=True)
 
