@@ -10,7 +10,9 @@
 databricks configure --token --profile e2-demo-field-eng
 ```
 
-### `feature_table_creation`
+### `feature-table-creation`
+
+Creates new feature table and separate labels Delta table
 
 **Interactive Cluster**
 ```
@@ -20,6 +22,20 @@ dbx execute --cluster-name=<name of interactive cluster> --job=feature-table-cre
 ```
 dbx deploy --jobs=feature-table-creation --files-only
 dbx launch --job=feature-table-creation --as-run-submit --trace
+```
+
+### `model-train`
+
+Trains baseline XGBoost model with sklearn wrapper
+
+**Interactive Cluster**
+```
+dbx execute --cluster-name=<name of interactive cluster> --job=model-train
+```
+**Automated Job Cluster**
+```
+dbx deploy --jobs=model-train --files-only
+dbx launch --job=model-train --as-run-submit --trace
 ```
 
 ---
