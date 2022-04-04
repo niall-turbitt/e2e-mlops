@@ -173,6 +173,8 @@ class ModelTrain:
             val_metrics = mlflow.sklearn.eval_and_log_metrics(model, X_val, y_val, prefix='val_')
             print(pd.DataFrame(val_metrics, index=[0]))
 
+            # TODO: log SHAP explainer
+
             if self.mlflow_params['model_registry_name']:
                 _logger.info(f'Registering model: {self.mlflow_params["model_registry_name"]}')
                 mlflow.register_model(f'runs:/{mlflow_run.info.run_id}/fs_model',
