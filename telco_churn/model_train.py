@@ -128,7 +128,7 @@ class ModelTrain:
         _logger.info('Logging model to MLflow using Feature Store API')
         fs.log_model(
             model,
-            'model',
+            'fs_model',
             flavor=mlflow.sklearn,
             training_set=fs_training_set,
             input_example=X_train[:100],
@@ -140,3 +140,10 @@ class ModelTrain:
         xgbc_val_metrics = mlflow.sklearn.eval_and_log_metrics(model, X_val, y_val,
                                                                prefix='val_')
         print(pd.DataFrame(xgbc_val_metrics, index=[0]))
+
+        if self.mlflow_params['model_registry_name']:
+            _logger.info(f'Registering model: {self.mlflow_params["model_registry_name"]}')
+            mlflow_run_id = mlflow.active_run().info.run_id
+            mlflow.register_model(f'runs:/{mlflow_run_id}/fs_model',
+                                  name=self.mlflow_params["model_registry_name"])
+

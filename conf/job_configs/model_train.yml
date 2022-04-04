@@ -2,7 +2,7 @@ mlflow_params:
   experiment_id: 1366206427888150
   # experiment_path: /Users/niall.turbitt@databricks.com/e2e_mlops
   run_name: 'baseline_xgboost'
-  model_registry_name: 'e2e_mlops'
+  model_registry_name: 'e2e_mlops_telco_churn'
 
 
 data_input:
