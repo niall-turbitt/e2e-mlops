@@ -8,4 +8,13 @@ feature_store_params:
 #                  'streamingMovies', 'contract', 'paperlessBilling', 'paymentMethod',
 #                  'monthlyCharges', 'totalCharges']
 
+mlflow_params:
+  experiment_path:
+  run_name:
+
 model_params:
+  learning_rate: 0.008098213761399603
+  max_depth: 8
+  min_child_weight': 3
+  subsample: 0.12038118521316003
+  random_state: 42
