@@ -26,7 +26,7 @@ dbx launch --job=feature-table-creation --as-run-submit --trace
 
 ### `model-train`
 
-Trains baseline XGBoost model with sklearn wrapper
+Trains baseline sklearn Random Forest Model
 
 **Interactive Cluster**
 ```
@@ -37,6 +37,21 @@ dbx execute --cluster-name=<name of interactive cluster> --job=model-train
 dbx deploy --jobs=model-train --files-only
 dbx launch --job=model-train --as-run-submit --trace
 ```
+
+### `model-inference-batch`
+
+Load model from MLflow Model Registry, load features from Feature Store and score batch
+
+**Interactive Cluster**
+```
+dbx execute --cluster-name=<name of interactive cluster> --job=model-inference-batch
+```
+**Automated Job Cluster**
+```
+dbx deploy --jobs=model-inference-batch --files-only
+dbx launch --job=model-inference-batch --as-run-submit --trace
+```
+
 
 ---
 

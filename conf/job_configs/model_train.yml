@@ -4,7 +4,6 @@ mlflow_params:
   run_name: 'baseline_random_forest'
   model_registry_name: 'e2e_mlops_telco_churn'
 
-
 data_input:
   feature_store_params:
     table_name: 'e2e_mlops_testing.churn_features'
@@ -18,12 +17,10 @@ data_input:
   labels_table_params:
     table_name: 'e2e_mlops_testing.churn_labels'
 
-
 pipeline_params:
   label_col: 'churn'
   random_state: 42
   test_size: 0.25
-
 
 model_params:
   n_estimators: 100
