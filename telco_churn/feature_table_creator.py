@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 import pyspark.sql.dataframe
 
-from telco_churn import data_ingest
 from telco_churn.data_prep import DataPreprocessor
 from telco_churn.utils import feature_store_utils
 from telco_churn.utils.get_spark import spark
@@ -48,7 +47,7 @@ class FeatureTableCreator:
         pyspark.sql.dataframe.DataFrame
             Input Spark DataFrame
         """
-        return data_ingest.spark_load_table(table=self.data_ingest_params['input_table'])
+        return spark.table(table=self.data_ingest_params['input_table'])
 
     def run_data_prep(self, input_df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
         """

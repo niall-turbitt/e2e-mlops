@@ -11,8 +11,8 @@ from mlflow.models import infer_signature
 import databricks
 from databricks.feature_store import FeatureStoreClient, FeatureLookup
 
-from telco_churn import data_ingest
 from telco_churn.pipeline import PipelineCreator
+from telco_churn.utils.get_spark import spark
 from telco_churn.utils.logger_utils import get_logger
 
 fs = FeatureStoreClient()
@@ -75,7 +75,7 @@ class ModelTrain:
         """
         feature_store_params = self.data_input['feature_store_params']
         feature_table_lookup = self._get_feature_table_lookup(feature_store_params)
-        labels_df = data_ingest.spark_load_table(self.data_input['labels_table_params']['table_name'])
+        labels_df = spark.table(self.data_input['labels_table_params']['table_name'])
         _logger.info('Creating Feature Store training set...')
 
         return fs.create_training_set(df=labels_df,
