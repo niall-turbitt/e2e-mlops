@@ -31,9 +31,9 @@ environments:
         spark_python_task:
           python_file: "file://telco_churn/jobs/model_inference_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/model_inference.yml"]
-      - name: "e2e-mlops-sample-integration-test"
+      - name: "sample-integration-test"
         <<:
           - *basic-static-cluster
         spark_python_task:
           python_file: "file://tests/integration/sample_test.py"
-          parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]
+          parameters: ["--conf-file", "file:fuse://conf/job_configs/sample_test.yml"]
