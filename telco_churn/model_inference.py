@@ -18,13 +18,13 @@ class ModelInference:
         mlflow_params (dict): Dictionary containing the keys model_registry_name (name of model to load in MLflow Model
             Registry) and model_registry_stage (MLflow Model Registry stage). Registered model must have been logged
             using the Feature Store API
-        data_input (dict): Dict containing the key table_name. This will be loaded as a Spark DataFrame to score the
-            model on - must contain column(s) for lookup keys to join feature data from Feature Store
+        inference_data (str): Table names to load as a Spark DataFrame to score the model on. Must contain column(s)
+            for lookup keys to join feature data from Feature Store
         data_output (dict): Default None. If provided, required to be a dict containing the keys delta_path
             (and optionally table_name to register as a table)
     """
     mlflow_params: dict
-    data_input: dict
+    inference_data: str
     data_output: dict = None
 
     def _load_inference_df(self) -> pyspark.sql.dataframe.DataFrame:
@@ -35,7 +35,7 @@ class ModelInference:
         -------
         pyspark.sql.dataframe.DataFrame
         """
-        inference_table_name = self.data_input['table_name']
+        inference_table_name = self.inference_data
         _logger.info(f'Loading lookup keys from table: {inference_table_name}')
         return spark.table(inference_table_name)
 

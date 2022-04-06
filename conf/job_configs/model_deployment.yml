@@ -2,7 +2,6 @@ mlflow_params:
   model_registry_name: 'e2e_mlops_telco_churn'
 
 data_input:
-  reference_data:
-    # Require Reference DataFrame to score the model on - must contain column(s) for lookup keys
-    # to join feature data from Feature Store
-    table_name: 'e2e_mlops_testing.churn_labels'
+  # Require Reference DataFrame to score the model on - must contain column(s) for lookup keys
+  # to join feature data from Feature Store
+  table_name: 'e2e_mlops_testing.churn_labels'

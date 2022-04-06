@@ -6,7 +6,7 @@ class ModelInferenceJob(Job):
 
     def launch(self):
         ModelInference(mlflow_params=self.conf['mlflow_params'],
-                       data_input=self.conf['data_input'],
+                       inference_data=self.conf['data_input']['table_name'],
                        data_output=self.conf['data_output']).run_and_write_batch()
 
 
