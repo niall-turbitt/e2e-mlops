@@ -12,6 +12,7 @@ _logger = get_logger()
 class DataPreprocessor:
     """
     Data preprocessing class
+
     Attributes:
         label_col (str): Name of original label column in input data
         ohe (bool): Flag to indicate whether or not to one hot encode categorical columns

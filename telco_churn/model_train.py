@@ -21,6 +21,16 @@ _logger = get_logger()
 
 @dataclass
 class ModelTrain:
+    """
+    Class to execute model training
+
+    Attributes:
+        mlflow_params (dict):
+        data_input (dict):
+        pipeline_params (dict):
+        model_params (dict):
+        conf (dict):
+    """
     mlflow_params: dict
     data_input: dict
     pipeline_params: dict
