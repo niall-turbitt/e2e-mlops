@@ -40,12 +40,12 @@ jobs:
           echo "Launching unit tests"
           pytest tests/unit
 
-      - name: Deploy integration test
-        run: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs=sample-integration-test --files-only
-
-      - name: Run integration test
-        run: |
-          dbx launch --deployment-file conf/deployment.yml --job=sample-integration-test --as-run-submit --trace
+#      - name: Deploy integration test
+#        run: |
+#          dbx deploy --deployment-file conf/deployment.yml --jobs=sample-integration-test --files-only
+#
+#      - name: Run integration test
+#        run: |
+#          dbx launch --deployment-file conf/deployment.yml --job=sample-integration-test --as-run-submit --trace
 
 
