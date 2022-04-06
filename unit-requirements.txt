@@ -1,6 +1,9 @@
 setuptools
 wheel
 pyspark~=3.2.1
+numpy~=1.20.1
+pandas~=1.2.4
+scikit-learn~=0.24.1
 pyyaml
 pytest
 pytest-cov
