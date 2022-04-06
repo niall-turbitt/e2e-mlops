@@ -15,11 +15,23 @@ class ModelDeployment:
     model_registry_name: str
     reference_data: str
 
-    def run(self):
-
-        stage = 'staging'
+    def _batch_inference_by_stage(self, stage: str):
 
         mlflow_params = {'model_registry_name': self.model_registry_name,
                          'model_registry_stage': stage}
+
         model_inference = ModelInference(mlflow_params=mlflow_params,
                                          inference_data=self.reference_data)
+
+        return model_inference.run_batch()
+
+    def run(self):
+
+        staging_inference_pred_df = self._batch_inference_by_stage(stage='staging')
+        prod_inference_pred_df = self._batch_inference_by_stage(stage='production')
+
+        # Evaluate
+
+        # Log comparison metrics to MLflow
+
+        # If staging > prod metrc , promote staging model to production
