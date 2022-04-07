@@ -68,10 +68,9 @@ class ModelInference:
                 3. A column prediction containing the output of the model.
         """
         fs = FeatureStoreClient()
-        model_uri = f'models:/{self.mlflow_params["model_registry_name"]}/{self.mlflow_params["model_registry_stage"]}'
-        _logger.info(f'Loading model from Model Registry: {model_uri}')
+        _logger.info(f'Loading model from Model Registry: {self.model_uri}')
 
-        return fs.score_batch(model_uri, df)
+        return fs.score_batch(self.model_uri, df)
 
     def run_batch(self) -> pyspark.sql.dataframe.DataFrame:
         """

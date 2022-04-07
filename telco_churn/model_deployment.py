@@ -20,8 +20,11 @@
 #
 #         mlflow_params = {'model_registry_name': self.model_registry_name,
 #                          'model_registry_stage': stage}
+#         model_registry_name = mlflow_params['model_registry_name']
+#         model_registry_stage = mlflow_params['model_registry_stage']
+#         model_uri = f'models:{model_registry_name}/{model_registry_stage}'
 #
-#         model_inference = ModelInference(mlflow_params=mlflow_params,
+#         model_inference = ModelInference(model_uri=mlflow_params,
 #                                          inference_data=self.reference_data)
 #
 #         return model_inference.run_batch()
