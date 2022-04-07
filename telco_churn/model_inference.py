@@ -11,10 +11,20 @@ _logger = get_logger()
 
 @dataclass
 class ModelInference:
+    """
+    Class to execute model inference
 
-    mlflow_params: dict
-    data_input: dict
-    data_output: dict
+    Attributes:
+        mlflow_params (dict): Dictionary containing the keys model_registry_name (name of model to load in MLflow Model
+            Registry) and model_registry_stage (MLflow Model Registry stage). Registered model must have been logged
+            using the Feature Store API
+        inference_data (str): Table names to load as a Spark DataFrame to score the model on. Must contain column(s)
+            for lookup keys to join feature data from Feature Store
+        data_output (dict): Default None. If provided, required to be a dict containing the keys delta_path
+            (and optionally table_name to register as a table)
+    """
+    model_uri: str
+    inference_data: str = None
 
     def _load_inference_df(self) -> pyspark.sql.dataframe.DataFrame:
         """
@@ -24,11 +34,11 @@ class ModelInference:
         -------
         pyspark.sql.dataframe.DataFrame
         """
-        inference_table_name = self.data_input['inference_data']['table_name']
+        inference_table_name = self.inference_data
         _logger.info(f'Loading lookup keys from table: {inference_table_name}')
         return spark.table(inference_table_name)
 
-    def _fs_score_batch(self, df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
+    def fs_score_batch(self, df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
         """
         Load and apply model from MLflow Model Registry using Feature Store API. Features will be automatically
         retrieved from the Feature Store. This method requires that the registered model must have been logged
@@ -58,10 +68,9 @@ class ModelInference:
                 3. A column prediction containing the output of the model.
         """
         fs = FeatureStoreClient()
-        model_uri = f'models:/{self.mlflow_params["model_registry_name"]}/{self.mlflow_params["model_registry_stage"]}'
-        _logger.info(f'Loading model from Model Registry: {model_uri}')
+        _logger.info(f'Loading model from Model Registry: {self.model_uri}')
 
-        return fs.score_batch(model_uri, df)
+        return fs.score_batch(self.model_uri, df)
 
     def run_batch(self) -> pyspark.sql.dataframe.DataFrame:
         """
@@ -77,16 +86,18 @@ class ModelInference:
                 3. A column prediction containing the output of the model.
         """
         inference_df = self._load_inference_df()
-        inference_pred_df = self._fs_score_batch(inference_df)
+        inference_pred_df = self.fs_score_batch(inference_df)
 
         return inference_pred_df
 
-    def run_and_write_batch(self, mode: str = 'overwrite'):
+    def run_and_write_batch(self, delta_path: str = None, table_name: str = None, mode: str = 'overwrite'):
         """
         Run batch inference and create predictions table
 
         Parameters
         ----------
+        delta_path
+        table_name
         mode : str
             Specify behavior when predictions data already exists.
             Options include:
@@ -96,17 +107,20 @@ class ModelInference:
                 * 'error' or `errorifexists`: Throw an exception if data already exists.
                 * 'ignore': Silently ignore this operation if data already exists.
         """
+        if delta_path is None:
+            raise RuntimeError('Provide data_output to ModelInference. Must be a dict containing at least the key: '
+                               'delta_path')
+
         inference_pred_df = self.run_batch()
 
-        predictions_path = self.data_output['predictions_data']['delta_path']
-        _logger.info(f'Writing predictions to DBFS: {predictions_path}')
-        inference_pred_df.write.format('delta').mode(mode).save(predictions_path)
+        _logger.info(f'Writing predictions to DBFS: {delta_path}')
+        inference_pred_df.write.format('delta').mode(mode).save(delta_path)
 
-        predictions_table_name = self.data_output['predictions_data']['table_name']
-        if mode == 'overwrite':
-            spark.sql(f'DROP TABLE IF EXISTS {predictions_table_name};')
-        # TODO: handle appends to predictions table
+        if table_name:
+            if mode == 'overwrite':
+                spark.sql(f'DROP TABLE IF EXISTS {table_name};')
+            # TODO: handle appends to predictions table
 
-        spark.sql(f"""CREATE TABLE {predictions_table_name}
-                      USING DELTA LOCATION '{predictions_path}';""")
-        _logger.info(f'Created predictions table: {predictions_table_name}')
+            spark.sql(f"""CREATE TABLE {table_name}
+                          USING DELTA LOCATION '{delta_path}';""")
+            _logger.info(f'Created predictions table: {table_name}')

@@ -14,6 +14,12 @@ _logger = get_logger()
 class FeatureTableCreator:
     """
     Class to execute a pipeline to create a Feature Store table, and labels table
+
+    Attributes:
+        data_ingest_params (dict):
+        data_prep_params (dict):
+        feature_store_params (dict):
+        labels_table_params (dict):
     """
     data_ingest_params: dict
     data_prep_params: dict

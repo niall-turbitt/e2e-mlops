@@ -3,12 +3,10 @@ mlflow_params:
   model_registry_stage: 'staging'
 
 data_input:
-  inference_data:
-    # Require DataFrame to score the model on - must contain column(s) for lookup keys
-    # to join feature data from Feature Store
-    table_name: 'e2e_mlops_testing.churn_labels'
+  # Require DataFrame to score the model on - must contain column(s) for lookup keys
+  # to join feature data from Feature Store
+  table_name: 'e2e_mlops_testing.churn_labels'
 
 data_output:
-  predictions_data:
-    delta_path: 'dbfs:/tmp/e2e_mlops/churn_predictions.delta'
-    table_name: 'e2e_mlops_testing.churn_predictions'
+  delta_path: 'dbfs:/tmp/e2e_mlops/churn_predictions.delta'
+  table_name: 'e2e_mlops_testing.churn_predictions'
