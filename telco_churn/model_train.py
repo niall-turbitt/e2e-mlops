@@ -11,7 +11,7 @@ from mlflow.models import infer_signature
 import databricks
 from databricks.feature_store import FeatureStoreClient, FeatureLookup
 
-from telco_churn.pipeline import PipelineCreator
+from telco_churn.model_train_pipeline import ModelTrainPipeline
 from telco_churn.utils.get_spark import spark
 from telco_churn.utils.logger_utils import get_logger
 
@@ -138,7 +138,7 @@ class ModelTrain:
         scikit-learn pipeline with fitted steps.
         """
         _logger.info('Creating baseline sklearn pipeline...')
-        pipeline = PipelineCreator.make_baseline(self.model_params)
+        pipeline = ModelTrainPipeline.create_train_pipeline(self.model_params)
 
         _logger.info('Fitting XGBoostClassifier...')
         _logger.info(f'Model params: {pprint.pformat(self.model_params)}')

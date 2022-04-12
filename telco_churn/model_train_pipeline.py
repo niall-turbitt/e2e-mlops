@@ -5,10 +5,10 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestClassifier
 
 
-class PipelineCreator:
+class ModelTrainPipeline:
 
     @classmethod
-    def make_baseline(cls, model_params: dict) -> Pipeline:
+    def create_train_pipeline(cls, model_params: dict) -> Pipeline:
 
         preprocessor = ColumnTransformer(
             transformers=[
