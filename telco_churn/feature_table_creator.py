@@ -68,8 +68,8 @@ class FeatureTableCreator:
         -------
         pyspark.sql.dataframe.DataFrame
         """
-        data_preprocessor = Featurization(**self.data_prep_params)
-        preproc_df = data_preprocessor.run(input_df)
+        featurization = Featurization(**self.data_prep_params)
+        preproc_df = featurization.run(input_df)
 
         return preproc_df
 

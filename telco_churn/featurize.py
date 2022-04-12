@@ -11,7 +11,7 @@ _logger = get_logger()
 @dataclass
 class Featurization:
     """
-    Data preprocessing class
+    Featurization class
 
     Attributes:
         label_col (str): Name of original label column in input data

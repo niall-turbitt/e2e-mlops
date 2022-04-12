@@ -92,11 +92,10 @@ class ModelTrain:
                                       label=self.pipeline_params['label_col'],
                                       exclude_columns=self.data_input['feature_store_params']['primary_keys'])
 
-    def _data_preproc(self, fs_training_set: databricks.feature_store.training_set.TrainingSet):
+    def create_train_test_split(self, fs_training_set: databricks.feature_store.training_set.TrainingSet):
         """
         Load the TrainingSet fortraining. The loaded DataFrame has columns specified by fs_training_set.
-        Loaded Spark DataFrame is converted to pandas DataFrame and split into train/val splits.
-
+        Loaded Spark DataFrame is converted to pandas DataFrame and split into train/test splits.
 
         Parameters
         ----------
@@ -105,7 +104,7 @@ class ModelTrain:
 
         Returns
         -------
-        train-val splits
+        train-test splits
         """
         _logger.info('Load training set from Feature Store, converting to pandas DataFrame')
         training_set_pdf = fs_training_set.load_df().toPandas()
@@ -113,13 +112,13 @@ class ModelTrain:
         X = training_set_pdf.drop(self.pipeline_params['label_col'], axis=1)
         y = training_set_pdf[self.pipeline_params['label_col']]
 
-        _logger.info(f'Splitting into train/val splits - val_size: {self.pipeline_params["test_size"]}')
-        X_train, X_val, y_train, y_val = train_test_split(X, y,
-                                                          random_state=self.pipeline_params['random_state'],
-                                                          test_size=self.pipeline_params['test_size'],
-                                                          stratify=y)
+        _logger.info(f'Splitting into train/test splits - test_size: {self.pipeline_params["test_size"]}')
+        X_train, X_test, y_train, y_test = train_test_split(X, y,
+                                                            random_state=self.pipeline_params['random_state'],
+                                                            test_size=self.pipeline_params['test_size'],
+                                                            stratify=y)
 
-        return X_train, X_val, y_train, y_val
+        return X_train, X_test, y_train, y_test
 
     def train_baseline(self, X_train: pd.DataFrame, y_train: pd.Series) -> sklearn.pipeline.Pipeline:
         """
@@ -160,8 +159,8 @@ class ModelTrain:
             # Create Feature Store Training Set
             fs_training_set = self._get_fs_training_set()
 
-            # Load and preprocess data into train/val splits
-            X_train, X_val, y_train, y_val = self._data_preproc(fs_training_set)
+            # Load and preprocess data into train/test splits
+            X_train, X_test, y_train, y_test = self.create_train_test_split(fs_training_set)
 
             # Fit baseline pipeline with XGBoost
             model = self.train_baseline(X_train, y_train)
@@ -177,10 +176,10 @@ class ModelTrain:
                 signature=infer_signature(X_train, y_train))
 
             # Training metrics are logged by MLflow autologging
-            # Log metrics for the validation set
+            # Log metrics for the test set
             _logger.info('Evaluating and logging metrics')
-            val_metrics = mlflow.sklearn.eval_and_log_metrics(model, X_val, y_val, prefix='val_')
-            print(pd.DataFrame(val_metrics, index=[0]))
+            test_metrics = mlflow.sklearn.eval_and_log_metrics(model, X_test, y_test, prefix='test_')
+            print(pd.DataFrame(test_metrics, index=[0]))
 
             # TODO: log SHAP explainer
 
