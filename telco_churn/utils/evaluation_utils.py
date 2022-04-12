@@ -1,3 +1,4 @@
+from typing import Dict
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
@@ -14,7 +15,7 @@ class ModelEvaluation:
                              average="weighted",
                              multi_class="ovo")
 
-    def evaluate(self, y_true: pd.Series, y_score: pd.Series) -> dict:
+    def evaluate(self, y_true: pd.Series, y_score: pd.Series) -> Dict:
         return {
             f"{self.metric_prefix}roc_auc_score": self._roc_auc_score(y_true, y_score),
         }
