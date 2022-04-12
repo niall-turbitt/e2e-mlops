@@ -27,12 +27,32 @@ class ModelDeployment:
     comparison_metric: str
 
     def _get_model_uri_by_stage(self, stage: str):
+        """
 
+        Parameters
+        ----------
+        stage
+
+        Returns
+        -------
+
+        """
         return f'models:/{self.model_registry_name}/{stage}'
 
     def _batch_inference_by_stage(self, stage: str):
+        """
 
+        Parameters
+        ----------
+        stage
+
+        Returns
+        -------
+
+        """
         model_uri = self._get_model_uri_by_stage(stage=stage)
+        _logger.info(f'Computing batch inference using: {model_uri}')
+        _logger.info(f'Reference data: {self.reference_data}')
         model_inference = ModelInference(model_uri=model_uri,
                                          inference_data=self.reference_data)
 
@@ -40,6 +60,19 @@ class ModelDeployment:
 
     @staticmethod
     def _get_evaluation_metric(y_true: pd.Series, y_score: pd.Series, metric: str, stage: str) -> float:
+        """
+
+        Parameters
+        ----------
+        y_true
+        y_score
+        metric
+        stage
+
+        Returns
+        -------
+
+        """
         metric_prefix = stage + "_"
         eval_dict = ModelEvaluation().evaluate(y_true, y_score, metric_prefix=metric_prefix)
         mlflow.log_metrics(eval_dict)
@@ -48,12 +81,18 @@ class ModelDeployment:
         return eval_metric
 
     def _run_promotion_logic(self, staging_eval_metric: float, production_eval_metric: float):
+        """
 
+        Parameters
+        ----------
+        staging_eval_metric
+        production_eval_metric
+
+        Returns
+        -------
+
+        """
         client = MlflowClient()
-        _logger.info(f'Candidate Staging model (stage="staging") {self.comparison_metric}: {staging_eval_metric}')
-        _logger.info(
-            f'Current Production model (stage="production") {self.comparison_metric}: {production_eval_metric}')
-
         staging_model_version = client.get_latest_versions(name=model_registry_name, stages=['staging'])[0]
 
         if staging_eval_metric <= production_eval_metric:
@@ -71,6 +110,12 @@ class ModelDeployment:
                                                   archive_existing_versions=True)
 
     def run(self):
+        """
+
+        Returns
+        -------
+
+        """
         staging_inference_pred_df = self._batch_inference_by_stage(stage='staging')
         prod_inference_pred_df = self._batch_inference_by_stage(stage='production')
 
@@ -81,10 +126,13 @@ class ModelDeployment:
                                                           y_score=staging_inference_pred_pdf['prediction'],
                                                           metric=self.comparison_metric,
                                                           stage='staging')
+        _logger.info(f'Candidate Staging model (stage="staging") {self.comparison_metric}: {staging_eval_metric}')
 
         production_eval_metric = self._get_evaluation_metric(y_true=prod_inference_pred_pdf[self.label_col],
                                                              y_score=prod_inference_pred_pdf['prediction'],
                                                              metric=self.comparison_metric,
                                                              stage='production')
+        _logger.info(
+            f'Current Production model (stage="production") {self.comparison_metric}: {production_eval_metric}')
 
         self._run_promotion_logic(staging_eval_metric, production_eval_metric)
