@@ -9,7 +9,7 @@ _logger = get_logger()
 
 
 @dataclass
-class DataPreprocessor:
+class Featurization:
     """
     Data preprocessing class
 
