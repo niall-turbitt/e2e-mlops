@@ -16,7 +16,7 @@ class ModelInference:
 
     Attributes:
         model_uri (str): MLflow model uri. Model model must have been logged using the Feature Store API
-        inference_data (str): Table names to load as a Spark DataFrame to score the model on. Must contain column(s)
+        inference_data (str): Table name to load as a Spark DataFrame to score the model on. Must contain column(s)
             for lookup keys to join feature data from Feature Store
     """
     model_uri: str
