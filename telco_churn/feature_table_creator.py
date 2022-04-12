@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import pyspark.sql.dataframe
 
-from telco_churn.data_prep import DataPreprocessor
+from telco_churn.featurize import Featurization
 from telco_churn.utils import feature_store_utils
 from telco_churn.utils.get_spark import spark
 from telco_churn.utils.logger_utils import get_logger
@@ -68,8 +68,8 @@ class FeatureTableCreator:
         -------
         pyspark.sql.dataframe.DataFrame
         """
-        data_preprocessor = DataPreprocessor(**self.data_prep_params)
-        preproc_df = data_preprocessor.run(input_df)
+        featurization = Featurization(**self.data_prep_params)
+        preproc_df = featurization.run(input_df)
 
         return preproc_df
 

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from telco_churn.pipeline import PipelineCreator
+from telco_churn.model_train_pipeline import PipelineCreator
 
 
 class PipelineCreatorTest(unittest.TestCase):
