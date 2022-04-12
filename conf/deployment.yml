@@ -31,6 +31,12 @@ environments:
         spark_python_task:
           python_file: "file://telco_churn/jobs/model_inference_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/model_inference.yml"]
+      - name: "model-deployment"
+        <<:
+          - *basic-static-cluster
+        spark_python_task:
+          python_file: "file://telco_churn/jobs/model_deployment_job.py"
+          parameters: ["--conf-file", "file:fuse://conf/job_configs/model_deployment.yml"]
       - name: "sample-integration-test"
         <<:
           - *basic-static-cluster
