@@ -5,9 +5,6 @@ from sklearn.metrics import roc_auc_score
 
 class ModelEvaluation:
 
-    def __init__(self, metric_prefix: str = ""):
-        self.metric_prefix = metric_prefix
-
     @staticmethod
     def _roc_auc_score(y_true: pd.Series, y_score: pd.Series):
         """
@@ -33,8 +30,9 @@ class ModelEvaluation:
                              average="weighted",
                              multi_class="ovo")
 
-    def evaluate(self, y_true: pd.Series, y_score: pd.Series) -> Dict:
+    def evaluate(self, y_true: pd.Series, y_score: pd.Series, metric_prefix: str = "") -> Dict:
         """
+
 
         Parameters
         ----------
@@ -44,10 +42,14 @@ class ModelEvaluation:
         y_score : array-like of shape (n_samples,) or (n_samples, n_classes)
             Target scores.
 
+        metric_prefix : str
+            Prefix for each metric key in the returned dictionary
+
+
         Returns
         -------
         Dictionary of (metric name, computed value)
         """
         return {
-            f"{self.metric_prefix}roc_auc_score": self._roc_auc_score(y_true, y_score),
+            f"{metric_prefix}roc_auc_score": self._roc_auc_score(y_true, y_score),
         }
