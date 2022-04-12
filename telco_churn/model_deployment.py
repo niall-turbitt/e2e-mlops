@@ -74,14 +74,16 @@ class ModelDeployment:
         staging_inference_pred_df = self._batch_inference_by_stage(stage='staging')
         prod_inference_pred_df = self._batch_inference_by_stage(stage='production')
 
-        # Evaluate
-        staging_eval_metric = self._get_evaluation_metric(y_true=staging_inference_pred_df[self.label_col],
-                                                          y_score=staging_inference_pred_df['prediction'],
+        staging_inference_pred_pdf = staging_inference_pred_df.toPandas()
+        prod_inference_pred_pdf = prod_inference_pred_df.toPandas()
+
+        staging_eval_metric = self._get_evaluation_metric(y_true=staging_inference_pred_pdf[self.label_col],
+                                                          y_score=staging_inference_pred_pdf['prediction'],
                                                           metric=self.comparison_metric,
                                                           stage='staging')
 
-        production_eval_metric = self._get_evaluation_metric(y_true=prod_inference_pred_df[self.label_col],
-                                                             y_score=prod_inference_pred_df['prediction'],
+        production_eval_metric = self._get_evaluation_metric(y_true=prod_inference_pred_pdf[self.label_col],
+                                                             y_score=prod_inference_pred_pdf['prediction'],
                                                              metric=self.comparison_metric,
                                                              stage='production')
 
