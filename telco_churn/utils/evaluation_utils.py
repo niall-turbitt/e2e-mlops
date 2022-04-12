@@ -17,7 +17,6 @@ class ModelEvaluation:
         ----------
         y_true : array-like of shape (n_samples,) or (n_samples, n_classes)
             True labels or binary label indicators
-
         y_score : array-like of shape (n_samples,) or (n_samples, n_classes)
             Target scores.
 
@@ -38,13 +37,10 @@ class ModelEvaluation:
         ----------
         y_true : array-like of shape (n_samples,) or (n_samples, n_classes)
             True labels or binary label indicators
-
         y_score : array-like of shape (n_samples,) or (n_samples, n_classes)
             Target scores.
-
         metric_prefix : str
             Prefix for each metric key in the returned dictionary
-
 
         Returns
         -------
