@@ -52,6 +52,19 @@ dbx deploy --jobs=model-inference-batch --files-only
 dbx launch --job=model-inference-batch --as-run-submit --trace
 ```
 
+### `model-deploy`
+
+Compare Staging versus Production model. Transition Staging to Production if outperforming current Production model
+
+**Interactive Cluster**
+```
+dbx execute --cluster-name=<name of interactive cluster> --job=model-deploy
+```
+**Automated Job Cluster**
+```
+dbx deploy --jobs=model-deploy --files-only
+dbx launch --job=model-deploy --as-run-submit --trace
+```
 
 ---
 
