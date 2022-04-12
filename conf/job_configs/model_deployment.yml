@@ -1,5 +1,6 @@
 mlflow_params:
   model_registry_name: 'e2e_mlops_telco_churn'
+  experiment_id: 4406129218115459
 
 data_input:
   # Require Reference DataFrame to score the model on - must contain column(s) for lookup keys
