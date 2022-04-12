@@ -15,13 +15,9 @@ class ModelInference:
     Class to execute model inference
 
     Attributes:
-        mlflow_params (dict): Dictionary containing the keys model_registry_name (name of model to load in MLflow Model
-            Registry) and model_registry_stage (MLflow Model Registry stage). Registered model must have been logged
-            using the Feature Store API
-        inference_data (str): Table names to load as a Spark DataFrame to score the model on. Must contain column(s)
+        model_uri (str): MLflow model uri. Model model must have been logged using the Feature Store API
+        inference_data (str): Table name to load as a Spark DataFrame to score the model on. Must contain column(s)
             for lookup keys to join feature data from Feature Store
-        data_output (dict): Default None. If provided, required to be a dict containing the keys delta_path
-            (and optionally table_name to register as a table)
     """
     model_uri: str
     inference_data: str = None
@@ -92,12 +88,14 @@ class ModelInference:
 
     def run_and_write_batch(self, delta_path: str = None, table_name: str = None, mode: str = 'overwrite'):
         """
-        Run batch inference and create predictions table
+        Run batch inference, save as Delta table (and optionally) create predictions table
 
         Parameters
         ----------
-        delta_path
-        table_name
+        delta_path :  str
+            Path to save resulting predictions to (as delta)
+        table_name : str
+            Name of predictions table
         mode : str
             Specify behavior when predictions data already exists.
             Options include:
@@ -108,8 +106,7 @@ class ModelInference:
                 * 'ignore': Silently ignore this operation if data already exists.
         """
         if delta_path is None:
-            raise RuntimeError('Provide data_output to ModelInference. Must be a dict containing at least the key: '
-                               'delta_path')
+            raise RuntimeError('Provide a path to delta_path to save predictions table to')
 
         inference_pred_df = self.run_batch()
 

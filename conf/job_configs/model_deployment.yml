@@ -1,13 +1,14 @@
-#mlflow_params:
-#  model_registry_name: 'e2e_mlops_telco_churn'
-#
-#data_input:
-#  # Require Reference DataFrame to score the model on - must contain column(s) for lookup keys
-#  # to join feature data from Feature Store
-#  # TODO: create a separate "reference" dataset (could be a selected slice of customers to score)
-#  table_name: 'e2e_mlops_testing.churn_labels'
-#  label_col: 'churn'
-#
-#model_comparison_params:
-#    metric: 'roc_auc_score'
-#    higher_is_better: True
+mlflow_params:
+  model_registry_name: 'e2e_mlops_telco_churn'
+  experiment_id: 4406129218115459
+
+data_input:
+  # Require Reference DataFrame to score the model on - must contain column(s) for lookup keys
+  # to join feature data from Feature Store
+  # TODO: create a separate "reference" dataset (could be a selected slice of customers to score)
+  table_name: 'e2e_mlops_testing.churn_labels'
+  label_col: 'churn'
+
+model_comparison_params:
+    metric: 'roc_auc_score'
+    higher_is_better: True
