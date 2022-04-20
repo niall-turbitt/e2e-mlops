@@ -5,8 +5,7 @@ from telco_churn.model_deployment import ModelDeployment
 class ModelDeploymentJob(Job):
 
     def launch(self):
-        ModelDeployment(model_registry_name=self.conf['mlflow_params']['model_registry_name'],
-                        experiment_id=self.conf['mlflow_params']['experiment_id'],
+        ModelDeployment(mlflow_params=self.conf['mlflow_params'],
                         reference_data=self.conf['data_input']['table_name'],
                         label_col=self.conf['data_input']['label_col'],
                         comparison_metric=self.conf['model_comparison_params']['metric'],

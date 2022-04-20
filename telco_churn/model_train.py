@@ -62,7 +62,7 @@ class ModelTrain:
         """
         if 'experiment_id' in self.mlflow_params:
             mlflow.set_experiment(experiment_id=self.mlflow_params['experiment_id'])
-        elif 'experiment_path' in self.mlflow_params['experiment_path']:
+        elif 'experiment_path' in self.mlflow_params:
             mlflow.set_experiment(experiment_name=self.mlflow_params['experiment_path'])
         else:
             raise RuntimeError('MLflow experiment_id or experiment_path must be set in mlflow_params')

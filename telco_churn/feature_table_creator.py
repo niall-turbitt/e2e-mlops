@@ -67,7 +67,7 @@ class FeatureTableCreator:
         pyspark.sql.dataframe.DataFrame
             Input Spark DataFrame
         """
-        return spark.table(table=self.data_ingest_params['input_table'])
+        return spark.table(self.data_ingest_params['input_table'])
 
     def run_data_prep(self, input_df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
         """
