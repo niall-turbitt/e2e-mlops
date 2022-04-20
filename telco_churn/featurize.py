@@ -9,9 +9,9 @@ _logger = get_logger()
 
 
 @dataclass
-class Featurization:
+class Featurizer:
     """
-    Featurization class
+    Class to contain the workflow to create features from input data
 
     Attributes:
         label_col (str): Name of original label column in input data

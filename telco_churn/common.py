@@ -1,3 +1,4 @@
+"""Abstract class for running Databricks jobs created from dbx basic python template"""
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
 from logging import Logger
