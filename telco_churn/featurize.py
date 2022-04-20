@@ -9,9 +9,9 @@ _logger = get_logger()
 
 
 @dataclass
-class Featurization:
+class Featurizer:
     """
-    Featurization class
+    Class containing featurization logic to apply to input Spark DataFrame
 
     Attributes:
         label_col (str): Name of original label column in input data

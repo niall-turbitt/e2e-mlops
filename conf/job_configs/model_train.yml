@@ -1,6 +1,6 @@
 mlflow_params:
-  experiment_id: 1366206427888150
-  # experiment_path: /Users/niall.turbitt@databricks.com/e2e_mlops
+#  experiment_id: 1366206427888150
+  experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops'
   run_name: 'baseline_random_forest'
   model_registry_name: 'e2e_mlops_telco_churn'
 
@@ -8,23 +8,17 @@ data_input:
   feature_store_params:
     table_name: 'e2e_mlops_testing.churn_features'
     primary_keys: 'customerID'
-    # If feature_names not provided, will use all features in the feature table (excluding primary keys and label_col)
-  #  feature_names: ['gender', 'seniorCitizen', 'partner', 'dependents', 'tenure',
-  #                  'phoneService', 'multipleLines', 'internetService', 'onlineSecurity',
-  #                  'onlineBackup', 'deviceProtection', 'techSupport', 'streamingTV',
-  #                  'streamingMovies', 'contract', 'paperlessBilling', 'paymentMethod',
-  #                  'monthlyCharges', 'totalCharges']
   labels_table_params:
     table_name: 'e2e_mlops_testing.churn_labels'
 
 pipeline_params:
   label_col: 'churn'
-  random_state: 42
   test_size: 0.25
+  random_state: 42
 
 model_params:
-  n_estimators: 100
-  max_depth: 8
+  n_estimators: 200
+  max_depth: 4
   min_samples_leaf: 1
   max_features: 'auto'
   random_state: 42

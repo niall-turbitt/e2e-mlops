@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import pyspark.sql.dataframe
 
-from telco_churn.featurize import Featurization
+from telco_churn import featurize
 from telco_churn.utils import feature_store_utils
 from telco_churn.utils.get_spark import spark
 from telco_churn.utils.logger_utils import get_logger
@@ -13,13 +13,27 @@ _logger = get_logger()
 @dataclass
 class FeatureTableCreator:
     """
-    Class to execute a pipeline to create a Feature Store table, and labels table
+    Class to execute a pipeline to create a Feature Store table, and separate labels table
 
     Attributes:
-        data_ingest_params (dict):
-        data_prep_params (dict):
-        feature_store_params (dict):
-        labels_table_params (dict):
+        data_ingest_params (dict): Dictionary containing input_table key. The value for input_table should be the name
+            of the table to use as input for creating features
+        data_prep_params (dict): Dictionary containing label_col, ohe, cat_cols (optional) and drop_missing keys.
+            label_col: name of column from input_table to use as the label column
+            ohe: boolean to indicate whether or not to one hot encode categorical columns
+            cat_cols: only required if ohe=True. Names of categorical columns to one hot encode
+            drop_missing: boolean to indicate whether or not to drop rows with missing values
+        feature_store_params (dict): Dictionary containing database_name, table_name, primary_keys and description keys.
+            database_name: name of database to use for creating the feature table
+            table_name: name of feature table
+            primary_keys: string or list of columns to use as the primary key(s). Use single column (customerID) as the
+                primary key for the telco churn example.
+            description: string containing description to attribute to the feature table in the Feature Store.
+        labels_table_params (dict): Dictionary containing database_name, table_name, label_col and dbfs_path
+            database_name: name of database to use for creating the labels table
+            table_name: name of labels table
+            label_col: name of column to use as the label column (in telco churn example we rename this column to 'churn')
+            dbfs_path: DBFS path to use for the labels table (saving as a Delta table)
     """
     data_ingest_params: dict
     data_prep_params: dict
@@ -53,11 +67,12 @@ class FeatureTableCreator:
         pyspark.sql.dataframe.DataFrame
             Input Spark DataFrame
         """
-        return spark.table(table=self.data_ingest_params['input_table'])
+        return spark.table(self.data_ingest_params['input_table'])
 
     def run_data_prep(self, input_df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
         """
-        Run data preparation step
+        Run data preparation step, using Featurizer to run featurization logic to create features from the input
+        DataFrame.
 
         Parameters
         ----------
@@ -67,21 +82,33 @@ class FeatureTableCreator:
         Returns
         -------
         pyspark.sql.dataframe.DataFrame
+            Processed Spark DataFrame containing features
         """
-        featurization = Featurization(**self.data_prep_params)
-        preproc_df = featurization.run(input_df)
+        featurizer = featurize.Featurizer(**self.data_prep_params)
+        proc_df = featurizer.run(input_df)
 
-        return preproc_df
+        return proc_df
 
     def run_feature_table_create(self, df: pyspark.sql.dataframe.DataFrame,
                                  database_name: str, table_name: str) -> None:
         """
+        Method to create feature table in Databricks Feature Store. When run, this method will create from scratch the
+        feature table. As such, we first create (if it doesn't exist) the database specified, and drop the table if it
+        already exists.
+
+        The feature table is created from the Spark DataFrame provided, dropping the label column if it exists in the
+        DataFrame. The label column cannot be present in the feature table when later constructing a feature store
+        training set from the feature table. The feature table will be created using the primary keys and description
+        proivided via feature_store_params.
 
         Parameters
         ----------
-        df
-        database_name
-        table_name
+        df : pyspark.sql.dataframe.DataFrame
+            Spark DataFrame from which to create the feature table.
+        database_name :  str
+            Name of database to use for creating the feature table
+        table_name :  str
+            Name of feature table
         """
         # TODO: handle existing feature table more gracefully.
         #  Currently to start afresh involves deleting feature table via UI
@@ -101,6 +128,10 @@ class FeatureTableCreator:
 
     def run_labels_table_create(self, df: pyspark.sql.dataframe.DataFrame) -> None:
         """
+        Method to create labels table. This table will consist of the columns primary_key, label_col
+
+        Create table using params specified in labels_table_params. Will create Delta table at dbfs_path, and further
+        create a table using this Delta location.
 
         Parameters
         ----------
@@ -136,18 +167,18 @@ class FeatureTableCreator:
         Run feature table creation pipeline
         """
         # TODO - insert check to see if feature table already exists
-        # TODO - delete feature table if already exisits?
+        # TODO - delete FS feature table if already exisits?
 
         _logger.info('==========Data Ingest==========')
         input_df = self.run_data_ingest()
 
         _logger.info('==========Data Prep==========')
-        preproc_df = self.run_data_prep(input_df)
+        proc_df = self.run_data_prep(input_df)
 
         _logger.info('==========Create Feature Table==========')
         fs_database_name = self.feature_store_params['database_name']
         fs_table_name = self.feature_store_params['table_name']
-        self.run_feature_table_create(preproc_df, database_name=fs_database_name, table_name=fs_table_name)
+        self.run_feature_table_create(proc_df, database_name=fs_database_name, table_name=fs_table_name)
 
         _logger.info('==========Create Labels Table==========')
-        self.run_labels_table_create(preproc_df)
+        self.run_labels_table_create(proc_df)
