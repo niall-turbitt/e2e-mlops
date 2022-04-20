@@ -22,14 +22,33 @@ _logger = get_logger()
 @dataclass
 class ModelTrain:
     """
-    Class to execute model training
+    Class to execute model training. Params, metrics and model artifacts will be tracking to MLflow Tracking. Optionally,
+    the resulting model will be registered to MLflow Model Registry if provided
 
     Attributes:
-        mlflow_params (dict):
-        data_input (dict):
-        pipeline_params (dict):
-        model_params (dict):
-        conf (dict):
+        mlflow_params : dict
+            Dictionary of MLflow parameters to use (either experiment_id or experiment_path can be used):
+                - experiment_id: ID of the MLflow experiment to be activated. If an experiment with this ID does not
+                     exist, an exception is thrown.
+                 - experiment_path: Case sensitive name of the experiment to be activated. If an experiment with this
+                     name does not exist, a new experiment wth this name is created.
+                - run_name: Name of MLflow run
+                - model_registry_name: Name of the registered model under which to create a new model version.
+                      If a registered model with the given name does not exist, it will be created automatically.
+        data_input (dict): Dictionary of feature_store_params, labels_table_params. Each of which are themselves dicts.
+            feature_store_params:
+                - table_name: Name of Databricks Feature Store feature table in format <database_name>.<table_name>
+                - primary_keys: (str or list) Name(s) of the primary key(s) column(s)
+            labels_table_params:
+                table_name: Name of labels table with columns primary_keys, and label_col. Table name in format
+                     <database_name>.<table_name>
+        pipeline_params (dict): Params to use in preprocessing pipeline
+            - label_col: Name of label column
+            - test_size: Proportion of input data to use as training data
+            - random_state: Random state to enable reproducible train-test split
+        model_params (dict): Dictionary of params for model
+        conf (dict): Optional dictionary of conf file used to trigger pipeline. If provided will be tracked as a yml
+            file to MLflow tracking.
     """
     mlflow_params: dict
     data_input: dict
@@ -74,9 +93,9 @@ class ModelTrain:
 
         return feature_table_lookup
 
-    def _get_fs_training_set(self) -> databricks.feature_store.training_set.TrainingSet:
+    def get_fs_training_set(self) -> databricks.feature_store.training_set.TrainingSet:
         """
-        Get the Feature Store TrainingSet
+        Create the Feature Store TrainingSet
 
         Returns
         -------
@@ -94,7 +113,7 @@ class ModelTrain:
 
     def create_train_test_split(self, fs_training_set: databricks.feature_store.training_set.TrainingSet):
         """
-        Load the TrainingSet fortraining. The loaded DataFrame has columns specified by fs_training_set.
+        Load the TrainingSet for training. The loaded DataFrame has columns specified by fs_training_set.
         Loaded Spark DataFrame is converted to pandas DataFrame and split into train/test splits.
 
         Parameters
@@ -120,9 +139,9 @@ class ModelTrain:
 
         return X_train, X_test, y_train, y_test
 
-    def train_baseline(self, X_train: pd.DataFrame, y_train: pd.Series) -> sklearn.pipeline.Pipeline:
+    def fit_pipeline(self, X_train: pd.DataFrame, y_train: pd.Series) -> sklearn.pipeline.Pipeline:
         """
-        Create baseline sklearn pipeline and fit pipeline.
+        Create sklearn pipeline and fit pipeline.
 
         Parameters
         ----------
@@ -130,22 +149,35 @@ class ModelTrain:
             Training data
 
         y_train : pd.Series
-            Training targets
+            Training labels
 
         Returns
         -------
         scikit-learn pipeline with fitted steps.
         """
-        _logger.info('Creating baseline sklearn pipeline...')
+        _logger.info('Creating sklearn pipeline...')
         pipeline = ModelTrainPipeline.create_train_pipeline(self.model_params)
 
-        _logger.info('Fitting XGBoostClassifier...')
+        _logger.info('Fitting sklearn RandomForestClassifier...')
         _logger.info(f'Model params: {pprint.pformat(self.model_params)}')
         model = pipeline.fit(X_train, y_train)
 
         return model
 
     def run(self):
+        """
+        Method to trigger model training, and tracking to MLflow.
+
+        Steps:
+            1. Set MLflow experiment (creating a new experiment if it does not already exist)
+            2. Start MLflow run
+            3. Create Databricks Feature Store training set
+            4. Create train-test splits to be used to train and evaluate the model
+            5. Define sklearn pipeline using ModelTrainPipeline, and fit on train data
+            6. Log trained model using the Databricks Feature Store API. Model will be logged to MLflow with associated
+               feature table metadata.
+            7. Register the model to MLflow model registry if model_registry_name is provided in mlflow_params
+        """
         self._set_experiment()
         # Enable automatic logging of input samples, metrics, parameters, and models
         mlflow.sklearn.autolog(log_input_examples=True, silent=True)
@@ -157,13 +189,13 @@ class ModelTrain:
                 mlflow.log_dict(self.conf, 'conf.yml')
 
             # Create Feature Store Training Set
-            fs_training_set = self._get_fs_training_set()
+            fs_training_set = self.get_fs_training_set()
 
             # Load and preprocess data into train/test splits
             X_train, X_test, y_train, y_test = self.create_train_test_split(fs_training_set)
 
-            # Fit baseline pipeline with XGBoost
-            model = self.train_baseline(X_train, y_train)
+            # Fit pipeline with RandomForestClassifier
+            model = self.fit_pipeline(X_train, y_train)
 
             # Log model using Feature Store API
             _logger.info('Logging model to MLflow using Feature Store API')
@@ -183,6 +215,7 @@ class ModelTrain:
 
             # TODO: log SHAP explainer
 
+            # Register model to MLflow Model Registry if provided
             if self.mlflow_params['model_registry_name']:
                 _logger.info(f'Registering model: {self.mlflow_params["model_registry_name"]}')
                 mlflow.register_model(f'runs:/{mlflow_run.info.run_id}/fs_model',

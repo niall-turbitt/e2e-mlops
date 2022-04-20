@@ -8,19 +8,13 @@ data_input:
   feature_store_params:
     table_name: 'e2e_mlops_testing.churn_features'
     primary_keys: 'customerID'
-    # If feature_names not provided, will use all features in the feature table (excluding primary keys and label_col)
-  #  feature_names: ['gender', 'seniorCitizen', 'partner', 'dependents', 'tenure',
-  #                  'phoneService', 'multipleLines', 'internetService', 'onlineSecurity',
-  #                  'onlineBackup', 'deviceProtection', 'techSupport', 'streamingTV',
-  #                  'streamingMovies', 'contract', 'paperlessBilling', 'paymentMethod',
-  #                  'monthlyCharges', 'totalCharges']
   labels_table_params:
     table_name: 'e2e_mlops_testing.churn_labels'
 
 pipeline_params:
   label_col: 'churn'
-  random_state: 42
   test_size: 0.25
+  random_state: 42
 
 model_params:
   n_estimators: 10
