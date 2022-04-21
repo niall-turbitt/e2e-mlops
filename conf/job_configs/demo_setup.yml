@@ -1,0 +1,11 @@
+mlflow_params:
+  # Experiment used to track training
+#  train_experiment_id: 1366206427888150
+  train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment'
+
+  # Experiment used to track model deployment
+#  deploy_experiment_id: 4406129218115459
+  deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment'
+  model_registry_name: 'e2e_mlops_telco_churn'
+
+feature_store_table: 'e2e_mlops_testing.churn_features'
