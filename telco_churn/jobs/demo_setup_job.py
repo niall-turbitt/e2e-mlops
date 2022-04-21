@@ -126,7 +126,7 @@ class DemoSetup(Job):
             fs.get_table(name=self.conf['feature_store_table'])
             _logger.info(f'Feature Store feature table: {self.conf["feature_store_table"]} exists')
             return True
-        except ValueError:
+        except (ValueError, Exception):
             _logger.info(f'Feature Store feature table: {self.conf["feature_store_table"]} DOES NOT exist')
             return False
 
@@ -134,7 +134,7 @@ class DemoSetup(Job):
         """
         Delete Feature Store feature table
 
-        TODO: DELETE this method once the public API to delete a feature table has been released. Currently uses protected class
+        TODO: UPDATE this method once the public API to delete a feature table has been released. Currently uses protected class
         """
         ####################################################################
         # DELETE once public API to delete feature table
