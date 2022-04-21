@@ -110,11 +110,8 @@ class FeatureTableCreator:
         table_name :  str
             Name of feature table
         """
-        # TODO: handle existing feature table more gracefully.
-        #  Currently to start afresh involves deleting feature table via UI
         # Create database if not exists, drop table if it already exists
         self.setup(database_name=database_name, table_name=table_name)
-        # TODO: add method to delete table in FeatureStore if exists
 
         # Store only features for each customerID, storing customerID, churn in separate churn_labels table
         # During model training we will use the churn_labels table to join features into

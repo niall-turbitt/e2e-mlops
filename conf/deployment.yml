@@ -13,44 +13,47 @@ environments:
   default:
     strict_path_adjustment_policy: true
     jobs:
-      - name: "feature-table-creation"
-        <<:
-          - *basic-static-cluster
-        spark_python_task:
-          python_file: "file://telco_churn/jobs/feature_table_creator_job.py"
-          parameters: ["--conf-file", "file:fuse://conf/job_configs/feature_table_creation.yml"]
-      - name: "model-train"
-        <<:
-          - *basic-static-cluster
-        spark_python_task:
-          python_file: "file://telco_churn/jobs/model_train_job.py"
-          parameters: ["--conf-file", "file:fuse://conf/job_configs/model_train.yml"]
-      - name: "model-inference-batch"
-        <<:
-          - *basic-static-cluster
-        spark_python_task:
-          python_file: "file://telco_churn/jobs/model_inference_job.py"
-          parameters: ["--conf-file", "file:fuse://conf/job_configs/model_inference.yml"]
-      - name: "model-deployment"
-        <<:
-          - *basic-static-cluster
-        spark_python_task:
-          python_file: "file://telco_churn/jobs/model_deployment_job.py"
-          parameters: ["--conf-file", "file:fuse://conf/job_configs/model_deployment.yml"]
       - name: "initial-model-train-register"
         tasks:
+          - task_key: "demo-setup"
+            <<:
+              - *basic-static-cluster
+            spark_python_task:
+              python_file: "file://telco_churn/jobs/demo_setup_job.py"
+              parameters: [ "--conf-file", "file:fuse://conf/job_configs/demo_setup.yml" ]
           - task_key: "feature-table-creation"
             <<: *basic-static-cluster
+            depends_on:
+              - task_key: "demo-setup"
             spark_python_task:
               python_file: "file://telco_churn/jobs/feature_table_creator_job.py"
               parameters: ["--conf-file", "file:fuse://conf/job_configs/feature_table_creation.yml"]
           - task_key: "model-train"
             <<: *basic-static-cluster
             depends_on:
+              - task_key: "demo-setup"
               - task_key: "feature-table-creation"
             spark_python_task:
               python_file: "file://telco_churn/jobs/model_train_job.py"
               parameters: ["--conf-file", "file:fuse://conf/job_configs/model_train.yml"]
+      - name: "model-train"
+        <<:
+          - *basic-static-cluster
+        spark_python_task:
+          python_file: "file://telco_churn/jobs/model_train_job.py"
+          parameters: ["--conf-file", "file:fuse://conf/job_configs/model_train.yml"]
+      - name: "model-deployment"
+        <<:
+          - *basic-static-cluster
+        spark_python_task:
+          python_file: "file://telco_churn/jobs/model_deployment_job.py"
+          parameters: ["--conf-file", "file:fuse://conf/job_configs/model_deployment.yml"]
+      - name: "model-inference-batch"
+        <<:
+          - *basic-static-cluster
+        spark_python_task:
+          python_file: "file://telco_churn/jobs/model_inference_job.py"
+          parameters: ["--conf-file", "file:fuse://conf/job_configs/model_inference.yml"]
       - name: "sample-integration-test"
         <<:
           - *basic-static-cluster

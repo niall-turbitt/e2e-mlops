@@ -77,7 +77,7 @@ class ModelInference:
         -------
         pyspark.sql.dataframe.DataFrame:
             A Spark DataFrame containing:
-                1. All columns of df.
+                1. All columns of inference df.
                 2. All feature values retrieved from Feature Store.
                 3. A column prediction containing the output of the model.
         """

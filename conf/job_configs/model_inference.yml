@@ -1,6 +1,6 @@
 mlflow_params:
   model_registry_name: 'e2e_mlops_telco_churn'
-  model_registry_stage: 'staging'
+  model_registry_stage: 'production'
 
 data_input:
   # Require DataFrame to score the model on - must contain column(s) for lookup keys
