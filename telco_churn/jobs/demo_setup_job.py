@@ -12,10 +12,24 @@ _logger = get_logger()
 class DemoSetup(Job):
 
     def _check_mlflow_model_registry_exists(self):
-        pass
+        """
+        Check if model exists in MLflow Model Registry
+        """
+        model_registry_name = self.conf['mlflow_params']['model_registry_name']
+        try:
+            client.get_registered_model(name=model_registry_name)
+            _logger.info(f'MLflow Model Registry name: {model_registry_name} exists')
+            return True
+        except RestException:
+            _logger.info(f'MLflow Model Registry name: {model_registry_name} DOES NOT exists')
+            return False
 
-    def _delete_model_registry(self):
+    def _delete_registered_model(self):
+        """
+        Delete an experiment from the backend store.
+        """
         client.delete_registered_model(name=self.conf['mlflow_params']['model_registry_name'])
+        _logger.info(f'Deleted MLflow Model Registry model: {self.conf["mlflow_params"]["model_registry_name"]}')
 
     def _check_mlflow_experiments_exists(self) -> dict:
         """
@@ -35,15 +49,19 @@ class DemoSetup(Job):
         def check_by_experiment_id(experiment_id):
             try:
                 mlflow.get_experiment(experiment_id=experiment_id)
+                _logger.info(f'MLflow Tracking experiment_id: {experiment_id} exists')
                 return True
             except RestException:
+                _logger.info(f'MLflow Tracking experiment_id: {experiment_id} DOES NOT exist')
                 return False
 
         def check_by_experiment_path(experiment_path):
             experiment = mlflow.get_experiment_by_name(name=experiment_path)
             if experiment is not None:
+                _logger.info(f'MLflow Tracking experiment_path: {experiment_path} exists')
                 return True
             else:
+                _logger.info(f'MLflow Tracking experiment_path: {experiment_path} DOES NOT exist')
                 return False
 
         mlflow_params = self.conf['mlflow_params']
@@ -97,31 +115,20 @@ class DemoSetup(Job):
     def _check_feature_table_exists(self):
         pass
 
-    def _archive_all_models(self):
-        pass
-
-
-
     def _delete_feature_table(self):
         pass
 
-
-
     def setup(self):
 
+        _logger.info('==========Demo Setup=========')
+
+        _logger.info('Checking MLflow Model Registry...')
         if self._check_mlflow_model_registry_exists():
-            self._archive_all_models()
-            self._delete_model_registry()
+            self._delete_registered_model()
 
-
-
+        _logger.info('Checking MLflow Tracking...')
         exp_exists_dict = self._check_mlflow_experiments_exists()
-
-
-
-
-
-
+        self._delete_mlflow_experiments(exp_exists_dict)
 
         if self._check_feature_table_exists():
             self._delete_feature_table()
