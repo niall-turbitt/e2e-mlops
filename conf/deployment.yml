@@ -13,24 +13,6 @@ environments:
   default:
     strict_path_adjustment_policy: true
     jobs:
-#      - name: "demo-setup"
-#        <<:
-#          - *basic-static-cluster
-#        spark_python_task:
-#          python_file: "file://telco_churn/jobs/demo_setup_job.py"
-#          parameters: ["--conf-file", "file:fuse://conf/job_configs/demo_setup.yml"]
-#      - name: "feature-table-creation"
-#        <<:
-#          - *basic-static-cluster
-#        spark_python_task:
-#          python_file: "file://telco_churn/jobs/feature_table_creator_job.py"
-#          parameters: ["--conf-file", "file:fuse://conf/job_configs/feature_table_creation.yml"]
-#      - name: "model-train"
-#        <<:
-#          - *basic-static-cluster
-#        spark_python_task:
-#          python_file: "file://telco_churn/jobs/model_train_job.py"
-#          parameters: ["--conf-file", "file:fuse://conf/job_configs/model_train.yml"]
       - name: "initial-model-train-register"
         tasks:
           - task_key: "demo-setup"
