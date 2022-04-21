@@ -5,15 +5,20 @@ from mlflow.exceptions import RestException
 from telco_churn.common import Job
 from telco_churn.utils.logger_utils import get_logger
 
+from databricks.feature_store.client import FeatureStoreClient
+from databricks.feature_store.utils.request_context import RequestContext
+
 client = MlflowClient()
+fs = FeatureStoreClient()
 _logger = get_logger()
 
 
 class DemoSetup(Job):
 
-    def _check_mlflow_model_registry_exists(self):
+    def _check_mlflow_model_registry_exists(self) -> bool:
         """
-        Check if model exists in MLflow Model Registry
+        Check if model exists in MLflow Model Registry.
+        Returns True if model exists in Model Registry, False if not
         """
         model_registry_name = self.conf['mlflow_params']['model_registry_name']
         try:
@@ -112,14 +117,39 @@ class DemoSetup(Job):
                 mlflow.delete_experiment(experiment_id=experiment.experiment_id)
                 _logger.info(f'Deleted existing experiment_path: {self.conf["mlflow_params"]["deploy_experiment_path"]}')
 
-    def _check_feature_table_exists(self):
-        pass
+    def _check_feature_table_exists(self) -> bool:
+        """
+        Check if Feature Store feature table exists
+        Returns True if feature table exists in Feature Store, False if not
+        """
+        try:
+            fs.get_table(name=self.conf['feature_store_table'])
+            _logger.info(f'Feature Store feature table: {self.conf["feature_store_table"]} exists')
+            return True
+        except ValueError:
+            _logger.info(f'Feature Store feature table: {self.conf["feature_store_table"]} DOES NOT exist')
+            return False
 
     def _delete_feature_table(self):
-        pass
+        """
+        Delete Feature Store feature table
+
+        TODO: DELETE this method once the public API to delete a feature table has been released. Currently uses protected class
+        """
+        ####################################################################
+        # DELETE once public API to delete feature table
+        rq = RequestContext(feature_store_method_name='test_only_method')
+        fs._catalog_client.delete_feature_table(self.conf['feature_store_table'], req_context=rq)
+        _logger.info(f'Deleted Feature Store feature table: {self.conf["feature_store_table"]}')
+        ####################################################################
 
     def setup(self):
-
+        """
+        Demo setup steps:
+        * Delete Model Registry model if exists (archive any existing models)
+        * Delete MLflow experiments if exists
+        * Delete Feature Table if exists
+        """
         _logger.info('==========Demo Setup=========')
 
         _logger.info('Checking MLflow Model Registry...')
@@ -130,16 +160,19 @@ class DemoSetup(Job):
         exp_exists_dict = self._check_mlflow_experiments_exists()
         self._delete_mlflow_experiments(exp_exists_dict)
 
+        _logger.info('Checking Feature Store...')
         if self._check_feature_table_exists():
             self._delete_feature_table()
 
+        _logger.info('==========Demo Setup Complete=========')
+
     def launch(self) -> None:
         """
-        Launch DemoSetupJob
+        Launch DemoSetup job
         """
         _logger.info("Launching DemoSetup job")
         DemoSetup().setup()
-        _logger.info("FeatureTableCreator job finished!")
+        _logger.info("DemoSetup job finished!")
 
 
 if __name__ == "__main__":
