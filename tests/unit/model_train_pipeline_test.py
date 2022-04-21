@@ -4,12 +4,12 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from telco_churn.model_train_pipeline import PipelineCreator
+from telco_churn.model_train_pipeline import ModelTrainPipeline
 
 
-class PipelineCreatorTest(unittest.TestCase):
+class ModelTrainPipelineTest(unittest.TestCase):
 
-    def test_base_pipeline(self):
+    def test_create_train_pipeline(self):
         @dataclass
         class Example:
             contract: str
@@ -48,7 +48,7 @@ class PipelineCreatorTest(unittest.TestCase):
                         'max_features': 'auto',
                         'random_state': 42}
 
-        pipeline = PipelineCreator.make_baseline(model_params=model_params)
+        pipeline = ModelTrainPipeline.create_train_pipeline(model_params=model_params)
         pipeline.fit(X, y)
         y_pred = pipeline.predict(X)
 
