@@ -3,7 +3,7 @@
 This repo is intended to demonstrate an end-to-end MLOps workflow on Databricks, where a model is deployed along with its ancillary pipelines to a specified (currently single) Databricks workspace.
 Each pipeline (e.g model training pipeline, model deployment pipeline) is deployed as a [Databricks job](https://docs.databricks.com/data-engineering/jobs/jobs.html), where these jobs are deployed to a Databricks workspace using Databricks Labs' [`dbx`](https://dbx.readthedocs.io/en/latest/index.html) tool. 
 
-The use case at hand is a churn prediction problem. We use [IBM's Telco Customer Churn dataset](https://community.ibm.com/community/user/businessanalytics/blogs/steven-macko/2019/07/11/telco-customer-churn-1113) to build a simple classifier to predict whether a customer will churn from a fictional telco company.
+The use case at hand is a churn prediction problem. We use the [IBM Telco Customer Churn dataset](https://community.ibm.com/community/user/businessanalytics/blogs/steven-macko/2019/07/11/telco-customer-churn-1113) to build a simple classifier to predict whether a customer will churn from a fictional telco company.
 
 ## Pipelines
 
