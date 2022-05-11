@@ -19,7 +19,6 @@ The following pipelines currently defined within the package are:
 - `model-inference-batch`
     - Load a model from MLflow Model Registry, load features from Feature Store and score batch
 
----
 ## Demo
 The following outlines the workflow to demo the e2e-mlops repo.
 
