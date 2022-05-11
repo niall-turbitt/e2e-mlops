@@ -9,7 +9,7 @@ The use case at hand is a churn prediction problem. We use the [IBM Telco Custom
 
 The following pipelines currently defined within the package are:
 - `demo-setup`
-    - Deletes existing feature store tables, and models register to MLflow, in order to start afresh for a demo  
+    - Deletes existing feature store tables, existing MLflow experiments and models registered to MLflow Model Registry, in order to start afresh for a demo  
 - `feature-table-creation`
     - Creates new feature table and separate labels Delta table
 - `model-train`
