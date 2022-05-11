@@ -63,7 +63,7 @@ The following outlines the workflow to demo the e2e-mlops repo.
         1. Creates new churn_features feature table in the Feature Store
     1. Model train task steps (`model-train`)
         1. Train initial “baseline” classifier (RandomForestClassifier - `max_depth=4`) 
-            - [no changes to config need to be made at this point]
+            - **NOTE:** no changes to config need to be made at this point
         1. Register the model. Model version 1 will be registered to stage=None upon successful model training.
         1. **Manual Step**: MLflow Model Registry UI promotion to stage='Production'
             - Go to MLflow Model Registry and manually promote model to stage=Production
