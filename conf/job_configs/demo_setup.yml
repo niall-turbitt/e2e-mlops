@@ -1,7 +1,7 @@
 mlflow_params:
   # Experiment used to track training
 #  train_experiment_id: 1366206427888150
-  train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment'
+  train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops'
 
   # Experiment used to track model deployment
 #  deploy_experiment_id: 4406129218115459
