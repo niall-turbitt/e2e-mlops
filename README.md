@@ -97,7 +97,7 @@ The following outlines the workflow to demo the e2e-mlops repo.
         1. **Manual Step**: MLflow Model Registry UI promotion to stage='Staging'
             - Go to Model registry and manually promote model to stage='Staging'
 
-    **ASIDE:** At this point, there should now be two model versions register in MLflow Model Registry:
+    **ASIDE:** At this point, there should now be two model versions registered in MLflow Model Registry:
         
     - Version 1 (Production): RandomForestClassifier (`max_depth=4`)
     - Version 2 (Staging): RandomForestClassifier (`max_depth=8`)
