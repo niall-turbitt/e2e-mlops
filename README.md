@@ -39,10 +39,10 @@ The following outlines the workflow to demo the e2e-mlops repo.
         - The table `e2e_mlops_testing.churn_features` will be created when `feature-table-creation` pipeline is triggered
         - Currently, the table must be deleted through the Feature Store UI
     - MLflow experiment
-        - Either create an experiment via the UI and specify the experiment_id in the model_train.yml conf file or;
-        - Specify a path within the workspace to use via the experiment_path param in the model_train.yml conf file
+        - Either create an experiment via the UI and specify the experiment_id in the [`model_train.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_train.yml) conf file or;
+        - Specify a path within the workspace to use via the experiment_path param in the [`model_train.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_train.yml) conf file
     - Model Registry
-        - Delete Model in Model Registry if exists
+        - Delete Model in MLflow Model Registry if exists
     
     **NOTE:** As part of the `initial-model-train-register` multitask job, the first task, `demo-setup` will delete these, as specified in [`demo_setup.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/demo_setup.yml).
 
