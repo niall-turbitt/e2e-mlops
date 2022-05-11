@@ -1,9 +1,9 @@
 name: CI pipeline
 
 on:
-  push:
+  pull_request:
     branches:
-      - '**'
+      - main
     tags-ignore:
       - 'v*' # this tag type is used for release pipelines
 
@@ -19,12 +19,12 @@ jobs:
       DATABRICKS_TOKEN:  ${{ secrets.DATABRICKS_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
-          python-version: 3.7.5
+          python-version: 3.9.5
 
       - name: Install pip
         run: |
@@ -40,12 +40,10 @@ jobs:
           echo "Launching unit tests"
           pytest tests/unit
 
-#      - name: Deploy integration test
-#        run: |
-#          dbx deploy --deployment-file conf/deployment.yml --jobs=sample-integration-test --files-only
-#
-#      - name: Run integration test
-#        run: |
-#          dbx launch --deployment-file conf/deployment.yml --job=sample-integration-test --as-run-submit --trace
+      - name: Deploy integration test
+        run: |
+          dbx deploy --deployment-file conf/deployment.yml --jobs=sample-integration-test --files-only
 
-
+      - name: Run integration test
+        run: |
+          dbx launch --deployment-file conf/deployment.yml --job=sample-integration-test --as-run-submit --trace
