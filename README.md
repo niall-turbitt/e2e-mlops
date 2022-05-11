@@ -13,9 +13,9 @@ The following pipelines currently defined within the package are:
 - `feature-table-creation`
     - Creates new feature table and separate labels Delta table
 - `model-train`
-    - Trains a scikit-learn Random Forest Model  
+    - Trains a scikit-learn Random Forest model  
 - `model-deployment`
-    - Compare the Staging versus Production models in the MLflow Model Registry. Transition Staging model to Production if outperforming the current Production model
+    - Compare the Staging versus Production models in the MLflow Model Registry. Transition the Staging model to Production if outperforming the current Production model
 - `model-inference-batch`
     - Load a model from MLflow Model Registry, load features from Feature Store and score batch
 
