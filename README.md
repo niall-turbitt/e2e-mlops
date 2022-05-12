@@ -26,9 +26,9 @@ The following outlines the workflow to demo the e2e-mlops repo.
 1. Spin up an interactive cluster 
 1. Clone https://github.com/niall-turbitt/e2e-mlops
 1. Configure [Databricks CLI connection profile](https://docs.databricks.com/dev-tools/cli/index.html#connection-profiles)
-    - The project is currently configured to use a connection profile called “e2-demo-field-eng”.
+    - The project is currently configured to use a connection profile called “demo”.
     - This is set in [`e2e-mlops/.dbx/project.json`](https://github.com/niall-turbitt/e2e-mlops/blob/main/.dbx/project.json) and configured when the project was originally created with the [`dbx` basic python template](https://dbx.readthedocs.io/en/latest/templates/python_basic.html).
-    - If your Databricks CLI connection profile is named something other than “e2-demo-field-eng”, you will need to update the profile field in [`project.json`](https://github.com/niall-turbitt/e2e-mlops/blob/main/.dbx/project.json).
+    - If your Databricks CLI connection profile is named something other than “demo”, you will need to update the profile field in [`project.json`](https://github.com/niall-turbitt/e2e-mlops/blob/main/.dbx/project.json).
 1. Configure Databricks secrets GitHub (for GitHub Actions)
     - **TODO**: link to steps to set this up
 
