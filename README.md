@@ -5,6 +5,8 @@ Each pipeline (e.g model training pipeline, model deployment pipeline) is deploy
 
 The use case at hand is a churn prediction problem. We use the [IBM Telco Customer Churn dataset](https://community.ibm.com/community/user/businessanalytics/blogs/steven-macko/2019/07/11/telco-customer-churn-1113) to build a simple classifier to predict whether a customer will churn from a fictional telco company.
 
+Note that the package is solely developed via an IDE, and as such there are no Databricks Notebooks in the repository. All jobs are executed via a command line based workflow using [`dbx`](https://dbx.readthedocs.io/en/latest/).
+
 ## Pipelines
 
 The following pipelines currently defined within the package are:
