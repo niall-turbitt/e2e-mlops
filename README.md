@@ -32,7 +32,18 @@ The following outlines the workflow to demo the e2e-mlops repo.
     - This is set in [`e2e-mlops/.dbx/project.json`](https://github.com/niall-turbitt/e2e-mlops/blob/main/.dbx/project.json) and configured when the project was originally created with the [`dbx` basic python template](https://dbx.readthedocs.io/en/latest/templates/python_basic.html).
     - If your Databricks CLI connection profile is named something other than “demo”, you will need to update the profile field in [`project.json`](https://github.com/niall-turbitt/e2e-mlops/blob/main/.dbx/project.json).
 1. Configure Databricks secrets GitHub (for GitHub Actions)
-    - **TODO**: link to steps to set this up
+    - Within the GitHub project navigate to Secrets under the project settings
+    - To run the GitHub actions workflows we require the following GitHub actions secrets:
+        - DATABRICKS_STAGING_HOST
+            - URL of Databricks staging workspace
+        - DATABRICKS_STAGING_TOKEN
+            - [Databricks access token](https://docs.databricks.com/dev-tools/api/latest/authentication.html) for staging workspace
+        - DATABRICKS_PROD_HOST
+            - URL of Databricks production workspace
+        - DATABRICKS_PROD_TOKEN
+            - [Databricks access token](https://docs.databricks.com/dev-tools/api/latest/authentication.html) for production workspace
+        - GH_TOKEN
+            - GitHub [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 
     #### ASIDE: Starting from scratch
     
