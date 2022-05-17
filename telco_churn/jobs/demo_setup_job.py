@@ -29,10 +29,28 @@ class DemoSetup(Job):
             _logger.info(f'MLflow Model Registry name: {model_registry_name} DOES NOT exists')
             return False
 
+    def _archive_registered_models(self):
+        """
+        Archive any model versions which are not already under stage='Archived
+        """
+        registered_model = client.get_registered_model(name=self.conf['mlflow_params']['model_registry_name'])
+        latest_versions_list = registered_model.latest_versions
+
+        _logger.info(f'MLflow Model Registry name: {conf["mlflow_params"]["model_registry_name"]}')
+        for model_version in latest_versions_list:
+            if model_version.current_stage != 'Archived':
+                _logger.info(f'Archiving model version: {model_version.version}')
+                client.transition_model_version_stage(
+                    name=model_registry_name,
+                    version=model_version.version,
+                    stage='Archived'
+                )
+
     def _delete_registered_model(self):
         """
         Delete an experiment from the backend store.
         """
+        self._archive_registered_models()
         client.delete_registered_model(name=self.conf['mlflow_params']['model_registry_name'])
         _logger.info(f'Deleted MLflow Model Registry model: {self.conf["mlflow_params"]["model_registry_name"]}')
 
