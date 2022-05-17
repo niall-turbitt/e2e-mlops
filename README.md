@@ -71,26 +71,40 @@ The following outlines the workflow to demo the e2e-mlops repo.
 
 2. **Code change / model update (Continuous Integration)**
 
-    1. Create new “dev/new_model” branch 
-    1. `git checkout -b  dev/new_model`
-    1. Make a change to the [`model_train.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_train.yml) config file, updating `max_depth` under model_params from 4 to 8
+    - Create new “dev/new_model” branch 
+        - `git checkout -b  dev/new_model`
+    - Make a change to the [`model_train.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_train.yml) config file, updating `max_depth` under model_params from 4 to 8
         - Optional: change run name under mlflow params in [`model_train.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_train.yml) config file
-    1. Create pull request, to merge the branch dev/new_model into main
+    - Create pull request, to merge the branch dev/new_model into main
 
 * On pull request the following steps are triggered in the GitHub Actions workflow:
     1. Trigger unit tests 
     1. Trigger pre_model_train_integration tests
-    1. Deploy `model-train` job
-    1. Deploy `model-deployment` job
-    1. Deploy `model-inference-batch` job
 
-3. **Run `model-train` job**
-    - Interactive cluster (preferred for demo purposes)
-        - ``dbx execute --cluster-name=<name of interactive cluster> --job=model-train``
-    - Automated Job Cluster
-        - ``dbx deploy --jobs=model-train --files-only``
-        - ``dbx launch --job=model-train --as-run-submit --trace``
 
+3. **Cut release**
+
+    - Create tag (e.g. `v0.0.1`)
+        - `git tag <tag_name> -a -m “Message”`
+            - Note that tags are matched to `v*`, i.e. `v1.0`, `v20.15.10`
+    - Push tag
+        - `git push origin <tag_name>`
+
+    - On pushing this the following steps are triggered in the [`onrelease.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/.github/workflows/onrelease.yml) GitHub Actions workflow:
+        1. Trigger unit tests
+        1. Deploy `model-train` job
+        1. Deploy `model-deployment` job
+        1. Deploy `model-inference-batch` job
+            - These jobs will now all be present in the specified workspace, and visible under the [Workflows](https://docs.databricks.com/data-engineering/jobs/index.html) tab.
+    
+
+4. **Run `model-train` job**
+    - Manually trigger job via UI
+        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `model-train` job will be present.
+        - Click into model-train and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration.
+    - Alternatively you can trigger the job using the Databricks CLI:
+      - `databricks jobs run-now –job-id JOB_ID`
+       
     - Model train job steps (`model-train`)
         1. Train improved “new” classifier (RandomForestClassifier - `max_depth=8`)
         1. Register the model. Model version 2 will be registered to stage=None upon successful model training.
@@ -103,12 +117,12 @@ The following outlines the workflow to demo the e2e-mlops repo.
     - Version 2 (Staging): RandomForestClassifier (`max_depth=8`)
 
 
-4. **Run `model-deployment` job (Continuous Deployment)**
-    - Interactive cluster (preferred for demo purposes)
-        - ``dbx execute --cluster-name=<name of interactive cluster> --job=model-deployment``
-    - Automated Job Cluster
-        - ``dbx deploy --jobs=model-deployment --files-only``
-        - ``dbx launch --job=model-deployment --as-run-submit --trace``
+5. **Run `model-deployment` job (Continuous Deployment)**
+    - Manually trigger job via UI
+        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `model-deployment` job will be present.
+        - Click into model-train and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration. 
+    - Alternatively you can trigger the job using the Databricks CLI:
+      - `databricks jobs run-now –job-id JOB_ID`
     
     - Model deployment job steps  (`model-deployment`)
         1. Compare new “candidate model” in stage='Staging' versus current Production model in stage='Production'
@@ -118,15 +132,14 @@ The following outlines the workflow to demo the e2e-mlops repo.
             1. If Staging model performs worse than Production model, archive Staging model
             
 
-5. **Run `model-inference-batch` job** 
+6. **Run `model-inference-batch` job** 
+    - Manually trigger job via UI
+        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `model-inference-batch` job will be present.
+        - Click into model-train and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration.
+    - Alternatively you can trigger the job using the Databricks CLI:
+      - `databricks jobs run-now –job-id JOB_ID`
 
-    - Interactive cluster (preferred for demo purposes)
-        - ``dbx execute --cluster-name=<name of interactive cluster> --job=model-inference-batch``
-    - Automated Job Cluster
-        - ``dbx deploy --jobs=model-inference-batch --files-only``
-        - ``dbx launch --job=model-inference-batch --as-run-submit --trace``
-
-    - Batch model inference steps  (`model-inference`)
+    - Batch model inference steps  (`model-inference-batch`)
         1. Load model from stage=Production in Model Registry
             - **NOTE:** model must have been logged to MLflow using the Feature Store API
         1. Use primary keys in specified inference input data to load features from feature store
