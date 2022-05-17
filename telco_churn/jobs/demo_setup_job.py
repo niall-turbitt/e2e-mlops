@@ -41,7 +41,7 @@ class DemoSetup(Job):
             if model_version.current_stage != 'Archived':
                 _logger.info(f'Archiving model version: {model_version.version}')
                 client.transition_model_version_stage(
-                    name=model_registry_name,
+                    name=self.conf['mlflow_params']['model_registry_name'],
                     version=model_version.version,
                     stage='Archived'
                 )
