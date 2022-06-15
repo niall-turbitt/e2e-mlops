@@ -180,7 +180,7 @@ class ModelTrain:
                feature table metadata.
             7. Register the model to MLflow model registry if model_registry_name is provided in mlflow_params
         """
-        _logger.info('==========Running Model training==========')
+        _logger.info('==========Running model training==========')
 
         _logger.info('==========Setting MLflow experiment==========')
         self._set_experiment()
