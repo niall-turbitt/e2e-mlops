@@ -37,15 +37,15 @@ jobs:
 
       - name: Deploy model-train job
         run: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs=model-train
+          dbx deploy --deployment-file conf/deployment.yml --jobs=model-train --environment=prod
 
       - name: Deploy model-deployment job
         run: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs=model-deployment
+          dbx deploy --deployment-file conf/deployment.yml --jobs=model-deployment --environment=prod
 
       - name: Deploy model-inference-batch job
         run: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs=model-inference-batch
+          dbx deploy --deployment-file conf/deployment.yml --jobs=model-inference-batch --environment=prod
 
       - name: Create Release
         id: create_release
