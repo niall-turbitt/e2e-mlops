@@ -223,7 +223,9 @@ class ModelTrain:
             test_metrics = mlflow.sklearn.eval_and_log_metrics(model, X_test, y_test, prefix='test_')
             print(pd.DataFrame(test_metrics, index=[0]))
 
-            # TODO: log SHAP explainer
+            # Log SHAP explanations against the test set
+            _logger.info('Logging SHAP explanations for the test set')
+            mlflow.shap.log_explanation(model.predict, X_test)
 
             # Register model to MLflow Model Registry if provided
             if self.mlflow_params['model_registry_name']:
