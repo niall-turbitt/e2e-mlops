@@ -25,12 +25,6 @@ environments:
         spark_python_task:
           python_file: "file://telco_churn/jobs/feature_table_creator_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/feature_table_creation.yml"]
-      - name: "sample-integration-test"
-        <<:
-          - *basic-static-cluster
-        spark_python_task:
-          python_file: "file://tests/integration/sample_test.py"
-          parameters: [ "--conf-file", "file:fuse://conf/job_configs/sample_test.yml" ]
       - name: "model-train"
         <<:
           - *basic-static-cluster
@@ -49,6 +43,12 @@ environments:
         spark_python_task:
           python_file: "file://telco_churn/jobs/model_inference_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/model_inference.yml"]
+      - name: "sample-integration-test"
+        <<:
+          - *basic-static-cluster
+        spark_python_task:
+          python_file: "file://tests/integration/sample_test.py"
+          parameters: [ "--conf-file", "file:fuse://conf/job_configs/sample_test.yml" ]
 
   staging:
     strict_path_adjustment_policy: true
