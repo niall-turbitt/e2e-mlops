@@ -9,3 +9,4 @@ mlflow_params:
   model_registry_name: 'e2e_mlops_telco_churn'
 
 feature_store_table: 'e2e_mlops_testing.churn_features'
+labels_table_path: 'dbfs:/tmp/e2e_mlops/churn_labels.delta'

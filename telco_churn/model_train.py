@@ -61,8 +61,10 @@ class ModelTrain:
         Set MLflow experiment. Use one of either experiment_id or experiment_path
         """
         if 'experiment_id' in self.mlflow_params:
+            _logger.info(f'MLflow experiment_id: {self.mlflow_params["experiment_id"]}')
             mlflow.set_experiment(experiment_id=self.mlflow_params['experiment_id'])
         elif 'experiment_path' in self.mlflow_params:
+            _logger.info(f'MLflow experiment_path: {self.mlflow_params["experiment_path"]}')
             mlflow.set_experiment(experiment_name=self.mlflow_params['experiment_path'])
         else:
             raise RuntimeError('MLflow experiment_id or experiment_path must be set in mlflow_params')
@@ -178,10 +180,14 @@ class ModelTrain:
                feature table metadata.
             7. Register the model to MLflow model registry if model_registry_name is provided in mlflow_params
         """
+        _logger.info('==========Running model training==========')
+
+        _logger.info('==========Setting MLflow experiment==========')
         self._set_experiment()
         # Enable automatic logging of input samples, metrics, parameters, and models
         mlflow.sklearn.autolog(log_input_examples=True, silent=True)
 
+        _logger.info('==========Starting MLflow run==========')
         with mlflow.start_run(run_name=self.mlflow_params['run_name']) as mlflow_run:
 
             if self.conf is not None:
@@ -189,12 +195,15 @@ class ModelTrain:
                 mlflow.log_dict(self.conf, 'conf.yml')
 
             # Create Feature Store Training Set
+            _logger.info('==========Creating Feature Store training set==========')
             fs_training_set = self.get_fs_training_set()
 
             # Load and preprocess data into train/test splits
+            _logger.info('==========Creating train/test splits==========')
             X_train, X_test, y_train, y_test = self.create_train_test_split(fs_training_set)
 
             # Fit pipeline with RandomForestClassifier
+            _logger.info('==========Fitting RandomForestClassifier model==========')
             model = self.fit_pipeline(X_train, y_train)
 
             # Log model using Feature Store API
@@ -209,14 +218,16 @@ class ModelTrain:
 
             # Training metrics are logged by MLflow autologging
             # Log metrics for the test set
+            _logger.info('==========Model Evaluation==========')
             _logger.info('Evaluating and logging metrics')
             test_metrics = mlflow.sklearn.eval_and_log_metrics(model, X_test, y_test, prefix='test_')
             print(pd.DataFrame(test_metrics, index=[0]))
 
-            # TODO: log SHAP explainer
-
             # Register model to MLflow Model Registry if provided
             if self.mlflow_params['model_registry_name']:
+                _logger.info('==========MLflow Model Registry==========')
                 _logger.info(f'Registering model: {self.mlflow_params["model_registry_name"]}')
                 mlflow.register_model(f'runs:/{mlflow_run.info.run_id}/fs_model',
                                       name=self.mlflow_params['model_registry_name'])
+
+        _logger.info('==========Model training completed==========')

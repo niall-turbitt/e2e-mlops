@@ -161,6 +161,19 @@ class DemoSetup(Job):
         _logger.info(f'Deleted Feature Store feature table: {self.conf["feature_store_table"]}')
         ####################################################################
 
+    def _check_labels_delta_table_exists(self) -> bool:
+        try:
+            _logger.info(f'Labels Delta table: {self.conf["labels_table_path"]} exists')
+            self.dbutils.fs.ls(self.conf['labels_table_path'])
+            return True
+        except:
+            _logger.info(f'Labels Delta table: {self.conf["labels_table_path"]} does not exist')
+            return False
+
+    def _delete_labels_delta_table(self):
+        self.dbutils.fs.rm(self.conf['labels_table_path'], True)
+        _logger.info(f'Deleted labels Delta table: {self.conf["labels_table_path"]}')
+
     def setup(self):
         """
         Demo setup steps:
@@ -181,6 +194,10 @@ class DemoSetup(Job):
         _logger.info('Checking Feature Store...')
         if self._check_feature_table_exists():
             self._delete_feature_table()
+
+        _logger.info('Checking existing labels table...')
+        if self._check_labels_delta_table_exists():
+            self._delete_labels_delta_table()
 
         _logger.info('==========Demo Setup Complete=========')
 

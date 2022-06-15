@@ -5,7 +5,6 @@ on:
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
-
 jobs:
   release-pipeline:
 
@@ -35,17 +34,17 @@ jobs:
         run: |
           pip install -r unit-requirements.txt
 
-      - name: Deploy model-train job
+      - name: Deploy model-train job [prod environment]
         run: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs=model-train
+          dbx deploy --deployment-file conf/deployment.yml --jobs=model-train --environment=prod
 
-      - name: Deploy model-deployment job
+      - name: Deploy model-deployment job [prod environment]
         run: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs=model-deployment
+          dbx deploy --deployment-file conf/deployment.yml --jobs=model-deployment --environment=prod
 
-      - name: Deploy model-inference-batch job
+      - name: Deploy model-inference-batch job [prod environment]
         run: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs=model-inference-batch
+          dbx deploy --deployment-file conf/deployment.yml --jobs=model-inference-batch --environment=prod
 
       - name: Create Release
         id: create_release

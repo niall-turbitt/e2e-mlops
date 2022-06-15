@@ -102,22 +102,33 @@ class ModelInference:
 
                 * 'append': Append contents of this :class:`DataFrame` to existing data.
                 * 'overwrite': Overwrite existing data.
-                * 'error' or `errorifexists`: Throw an exception if data already exists.
-                * 'ignore': Silently ignore this operation if data already exists.
         """
-        if delta_path is None:
-            raise RuntimeError('Provide a path to delta_path to save predictions table to')
+        _logger.info('==========Running batch model inference==========')
 
         inference_pred_df = self.run_batch()
 
-        _logger.info(f'Writing predictions to DBFS: {delta_path}')
-        inference_pred_df.write.format('delta').mode(mode).save(delta_path)
-
-        if table_name:
-            if mode == 'overwrite':
-                spark.sql(f'DROP TABLE IF EXISTS {table_name};')
-            # TODO: handle appends to predictions table
-
+        _logger.info('==========Writing predictions==========')
+        if mode == 'overwrite':
+            _logger.info(f'mode={mode}')
+            if delta_path is None:
+                raise RuntimeError('Provide a path to delta_path to save predictions table to')
+            _logger.info(f'Writing predictions to DBFS: {delta_path}')
+            inference_pred_df.write.format('delta').mode(mode).save(delta_path)
+            if table_name is None:
+                raise RuntimeError('Provide a table_name to create from predictions')
+            spark.sql(f'DROP TABLE IF EXISTS {table_name};')
+            _logger.info(f'Creating predictions table: {table_name}')
             spark.sql(f"""CREATE TABLE {table_name}
                           USING DELTA LOCATION '{delta_path}';""")
             _logger.info(f'Created predictions table: {table_name}')
+        elif mode == 'append':
+            _logger.info(f'mode={mode}')
+            if table_name is None:
+                raise RuntimeError('Provide a table_name to append predictions to')
+            _logger.info(f'Appending predictions to {table_name}')
+            inference_pred_df.write.format('delta').mode(mode).saveAsTable(table_name)
+        else:
+            raise RuntimeError(f'Provide one of "overwrite" or "append" as a data_output mode arg. Provided arg {mode} '
+                               f'is not supported')
+
+        _logger.info('==========Batch model inference completed==========')

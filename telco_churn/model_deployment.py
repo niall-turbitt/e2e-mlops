@@ -53,8 +53,10 @@ class ModelDeployment:
         Set MLflow experiment. Use one of either experiment_id or experiment_path
         """
         if 'experiment_id' in self.mlflow_params:
+            _logger.info(f'MLflow experiment_id: {self.mlflow_params["experiment_id"]}')
             mlflow.set_experiment(experiment_id=self.mlflow_params['experiment_id'])
         elif 'experiment_path' in self.mlflow_params:
+            _logger.info(f'MLflow experiment_path: {self.mlflow_params["experiment_path"]}')
             mlflow.set_experiment(experiment_name=self.mlflow_params['experiment_path'])
         else:
             raise RuntimeError('MLflow experiment_id or experiment_path must be set in mlflow_params')
@@ -184,21 +186,27 @@ class ModelDeployment:
                Staging model evaluation metric is lower than the Production model evaluation metric.
 
         """
+        _logger.info('==========Running model deployment==========')
+
+        _logger.info('==========Setting MLflow experiment==========')
         self._set_experiment()
         with mlflow.start_run(run_name='Model Comparison'):
 
+            _logger.info('==========Batch inference: staging model==========')
             staging_inference_pred_df = self._batch_inference_by_stage(stage='staging')
-            prod_inference_pred_df = self._batch_inference_by_stage(stage='production')
-
             staging_inference_pred_pdf = staging_inference_pred_df.toPandas()
+            _logger.info('==========Batch inference: production model==========')
+            prod_inference_pred_df = self._batch_inference_by_stage(stage='production')
             prod_inference_pred_pdf = prod_inference_pred_df.toPandas()
 
+            _logger.info('==========Model evaluation: staging model==========')
             staging_eval_metric = self._get_evaluation_metric(y_true=staging_inference_pred_pdf[self.label_col],
                                                               y_score=staging_inference_pred_pdf['prediction'],
                                                               metric=self.comparison_metric,
                                                               stage='staging')
             _logger.info(f'Candidate Staging model (stage="staging") {self.comparison_metric}: {staging_eval_metric}')
 
+            _logger.info('==========Model evaluation: production model==========')
             production_eval_metric = self._get_evaluation_metric(y_true=prod_inference_pred_pdf[self.label_col],
                                                                  y_score=prod_inference_pred_pdf['prediction'],
                                                                  metric=self.comparison_metric,
@@ -206,4 +214,7 @@ class ModelDeployment:
             _logger.info(
                 f'Current Production model (stage="production") {self.comparison_metric}: {production_eval_metric}')
 
+            _logger.info('==========Model comparison: candidate staging model vs current production model==========')
             self._run_promotion_logic(staging_eval_metric, production_eval_metric)
+
+            _logger.info('==========Model deployment completed==========')

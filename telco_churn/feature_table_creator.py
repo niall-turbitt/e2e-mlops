@@ -135,11 +135,10 @@ class FeatureTableCreator:
         df : pyspark.sql.dataframe.DataFrame
             Spark DataFrame containing primary keys column and label column
         """
-
-        if type(self.feature_store_params['primary_keys']) is str:
+        if isinstance(self.feature_store_params['primary_keys'], str):
             labels_table_cols = [self.feature_store_params['primary_keys'],
                                  self.labels_table_params['label_col']]
-        elif type(self.feature_store_params['primary_keys']) is list:
+        elif isinstance(self.feature_store_params['primary_keys'], list):
             labels_table_cols = self.feature_store_params['primary_keys'] + \
                                 [self.labels_table_params['label_col']]
         else:
@@ -163,9 +162,6 @@ class FeatureTableCreator:
         """
         Run feature table creation pipeline
         """
-        # TODO - insert check to see if feature table already exists
-        # TODO - delete FS feature table if already exisits?
-
         _logger.info('==========Data Ingest==========')
         input_df = self.run_data_ingest()
 
