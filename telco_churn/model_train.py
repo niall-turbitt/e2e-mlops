@@ -231,3 +231,5 @@ class ModelTrain:
                 _logger.info(f'Registering model: {self.mlflow_params["model_registry_name"]}')
                 mlflow.register_model(f'runs:/{mlflow_run.info.run_id}/fs_model',
                                       name=self.mlflow_params['model_registry_name'])
+
+        _logger.info('==========Model training completed==========')
