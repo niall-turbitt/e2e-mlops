@@ -20,6 +20,7 @@ custom:
       num_workers: 1
       node_type_id: "i3.xlarge"
       spark_env_vars:
+        DEPLOYMENT_ENV: dev
         <<: [*mlflow-params-dev]
 
   staging-cluster: &staging-cluster
@@ -27,6 +28,8 @@ custom:
       <<: *basic-cluster-props
       num_workers: 1
       node_type_id: "i3.xlarge"
+      spark_env_vars:
+        DEPLOYMENT_ENV: staging
 
   prod-cluster: &prod-cluster
     new_cluster:
@@ -34,6 +37,7 @@ custom:
       num_workers: 1
       node_type_id: "i3.xlarge"
       spark_env_vars:
+        DEPLOYMENT_ENV: prod
         <<: [*mlflow-params-prod]
 
 # please note that we're using FUSE reference for config file, hence we're going to load this file using its local FS path

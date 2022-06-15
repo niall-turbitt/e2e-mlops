@@ -8,5 +8,6 @@ mlflow_params:
   deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment'
   model_registry_name: 'e2e_mlops_telco_churn'
 
+# TODO: nest as data_params
 feature_store_table: 'e2e_mlops_testing.churn_features'
 labels_table_path: 'dbfs:/tmp/e2e_mlops/churn_labels.delta'
