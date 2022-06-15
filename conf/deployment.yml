@@ -3,12 +3,12 @@ custom:
   mlflow-params-dev: &mlflow-params-dev
     model_train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_dev'
     model_registry_name: 'e2e_mlops_telco_churn_dev'
-    model_deploy_experiment_path: 'e2e_mlops_telco_churn_dev'
+    model_deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment_dev'
 
   mlflow-params-prod: &mlflow-params-prod
     model_train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_prod'
     model_registry_name: 'e2e_mlops_telco_churn_prod'
-    model_deploy_experiment_path: 'e2e_mlops_telco_churn_prod'
+    model_deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment_prod'
 
   # Cluster configs for each environment
   basic-cluster-props: &basic-cluster-props
