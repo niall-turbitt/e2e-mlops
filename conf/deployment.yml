@@ -1,4 +1,5 @@
 custom:
+
   # Global MLflow params for each environment
   mlflow-params-dev: &mlflow-params-dev
     model_train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_dev'
@@ -12,7 +13,7 @@ custom:
 
   # Cluster configs for each environment
   basic-cluster-props: &basic-cluster-props
-    spark_version: "10.4.x-cpu-ml-scala2.12"
+    spark_version: "10.5.x-cpu-ml-scala2.12"
 
   dev-cluster: &dev-cluster
     new_cluster:
@@ -40,6 +41,7 @@ custom:
         DEPLOYMENT_ENV: prod
         <<: [*mlflow-params-prod]
 
+# Databricks Jobs definitions
 # please note that we're using FUSE reference for config file, hence we're going to load this file using its local FS path
 environments:
 

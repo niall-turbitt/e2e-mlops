@@ -1,3 +1,5 @@
+import os
+
 import mlflow
 from mlflow.tracking import MlflowClient
 from mlflow.exceptions import RestException
@@ -15,12 +17,12 @@ _logger = get_logger()
 
 class DemoSetup(Job):
 
-    def _check_mlflow_model_registry_exists(self) -> bool:
+    @staticmethod
+    def _check_mlflow_model_registry_exists(model_registry_name) -> bool:
         """
         Check if model exists in MLflow Model Registry.
         Returns True if model exists in Model Registry, False if not
         """
-        model_registry_name = self.conf['mlflow_params']['model_registry_name']
         try:
             client.get_registered_model(name=model_registry_name)
             _logger.info(f'MLflow Model Registry name: {model_registry_name} exists')
@@ -29,32 +31,37 @@ class DemoSetup(Job):
             _logger.info(f'MLflow Model Registry name: {model_registry_name} DOES NOT exists')
             return False
 
-    def _archive_registered_models(self):
+    @staticmethod
+    def _archive_registered_models(model_registry_name):
         """
         Archive any model versions which are not already under stage='Archived
         """
-        registered_model = client.get_registered_model(name=self.conf['mlflow_params']['model_registry_name'])
+        registered_model = client.get_registered_model(name=model_registry_name)
         latest_versions_list = registered_model.latest_versions
 
-        _logger.info(f'MLflow Model Registry name: {self.conf["mlflow_params"]["model_registry_name"]}')
+        _logger.info(f'MLflow Model Registry name: {model_registry_name}')
         for model_version in latest_versions_list:
             if model_version.current_stage != 'Archived':
                 _logger.info(f'Archiving model version: {model_version.version}')
                 client.transition_model_version_stage(
-                    name=self.conf['mlflow_params']['model_registry_name'],
+                    name=model_registry_name,
                     version=model_version.version,
                     stage='Archived'
                 )
 
-    def _delete_registered_model(self):
+    def _delete_registered_model(self, model_registry_name):
         """
         Delete an experiment from the backend store.
         """
-        self._archive_registered_models()
-        client.delete_registered_model(name=self.conf['mlflow_params']['model_registry_name'])
-        _logger.info(f'Deleted MLflow Model Registry model: {self.conf["mlflow_params"]["model_registry_name"]}')
+        self._archive_registered_models(model_registry_name)
+        client.delete_registered_model(name=model_registry_name)
+        _logger.info(f'Deleted MLflow Model Registry model: {model_registry_name}')
 
-    def _check_mlflow_experiments_exists(self) -> dict:
+    @staticmethod
+    def _check_mlflow_experiments_exists(train_experiment_id: int = None,
+                                         train_experiment_path: str = None,
+                                         deploy_experiment_id: int = None,
+                                         deploy_experiment_path: str = None) -> dict:
         """
         The demo workflow consists of creating 2 MLflow Tracking experiments:
             * train_experiment - Experiment used to track params, metrics, artifacts during model training
@@ -69,6 +76,7 @@ class DemoSetup(Job):
         -------
         Dictionary indicating whether train and deploy MLflow experiments currently exist
         """
+
         def check_by_experiment_id(experiment_id):
             try:
                 mlflow.get_experiment(experiment_id=experiment_id)
@@ -87,21 +95,21 @@ class DemoSetup(Job):
                 _logger.info(f'MLflow Tracking experiment_path: {experiment_path} DOES NOT exist')
                 return False
 
-        mlflow_params = self.conf['mlflow_params']
-
-        if 'train_experiment_id' in mlflow_params:
-            train_exp_exists = check_by_experiment_id(mlflow_params['train_experiment_id'])
-        elif 'train_experiment_path' in mlflow_params:
-            train_exp_exists = check_by_experiment_path(mlflow_params['train_experiment_path'])
+        if train_experiment_id is not None:
+            train_exp_exists = check_by_experiment_id(train_experiment_id)
+        elif train_experiment_path is not None:
+            train_exp_exists = check_by_experiment_path(train_experiment_path)
         else:
-            raise RuntimeError('Either train_experiment_id or train_experiment_path should be passed in demo_setup.yml')
+            raise RuntimeError('Either model_train_experiment_id or model_train_experiment_path should be passed in '
+                               'deployment.yml')
 
-        if 'deploy_experiment_id' in mlflow_params:
-            deploy_exp_exists = check_by_experiment_id(mlflow_params['deploy_experiment_id'])
-        elif 'deploy_experiment_path' in mlflow_params:
-            deploy_exp_exists = check_by_experiment_path(mlflow_params['deploy_experiment_path'])
+        if deploy_experiment_id is not None:
+            deploy_exp_exists = check_by_experiment_id(deploy_experiment_id)
+        elif deploy_experiment_path is not None:
+            deploy_exp_exists = check_by_experiment_path(deploy_experiment_path)
         else:
-            raise RuntimeError('Either train_experiment_id or train_experiment_path should be passed in demo_setup.yml')
+            raise RuntimeError('Either model_train_experiment_id or model_train_experiment_path should be passed in '
+                               'deployment.yml')
 
         return {'train_exp_exists': train_exp_exists,
                 'deploy_exp_exists': deploy_exp_exists}
@@ -119,21 +127,26 @@ class DemoSetup(Job):
         if len(delete_experiments) == 0:
             _logger.info(f'No existing experiments to delete')
         if 'train_exp_exists' in delete_experiments:
-            try:
-                mlflow.delete_experiment(experiment_id=self.conf['mlflow_params']['train_experiment_id'])
-                _logger.info(f'Deleted existing experiment_id: {self.conf["mlflow_params"]["train_experiment_id"]}')
-            except KeyError:
-                experiment = mlflow.get_experiment_by_name(name=self.conf['mlflow_params']['train_experiment_path'])
+            if os.getenv('model_train_experiment_path') is not None:
+                experiment = mlflow.get_experiment_by_name(name=os.getenv('model_train_experiment_path'))
                 mlflow.delete_experiment(experiment_id=experiment.experiment_id)
-                _logger.info(f'Deleted existing experiment_path: {self.conf["mlflow_params"]["train_experiment_path"]}')
+                _logger.info(f'Deleted existing experiment_path: {os.getenv("model_train_experiment_path")}')
+            elif os.getenv('model_train_experiment_id') is not None:
+                mlflow.delete_experiment(experiment_id=os.getenv('model_train_experiment_id'))
+                _logger.info(f'Deleted existing experiment_id: {os.getenv("model_train_experiment_id")}')
+            else:
+                raise RuntimeError('Either model_train_experiment_id or model_train_experiment_path should be passed '
+                                   'in deployment.yml')
+
         if 'deploy_exp_exists' in delete_experiments:
-            try:
-                mlflow.delete_experiment(experiment_id=self.conf['mlflow_params']['deploy_experiment_id'])
-                _logger.info(f'Deleted existing experiment_id: {self.conf["mlflow_params"]["deploy_experiment_id"]}')
-            except KeyError:
-                experiment = mlflow.get_experiment_by_name(name=self.conf['mlflow_params']['deploy_experiment_path'])
+            if os.getenv('model_deploy_experiment_path') is not None:
+                experiment = mlflow.get_experiment_by_name(name=os.getenv('model_deploy_experiment_path'))
                 mlflow.delete_experiment(experiment_id=experiment.experiment_id)
-                _logger.info(f'Deleted existing experiment_path: {self.conf["mlflow_params"]["deploy_experiment_path"]}')
+                _logger.info(
+                    f'Deleted existing experiment_path: {os.getenv("model_deploy_experiment_path")}')
+            elif os.getenv('model_deploy_experiment_id') is not None:
+                mlflow.delete_experiment(experiment_id=os.getenv('model_deploy_experiment_id'))
+                _logger.info(f'Deleted existing experiment_id: {os.getenv("model_deploy_experiment_id")}')
 
     def _check_feature_table_exists(self) -> bool:
         """
@@ -151,15 +164,14 @@ class DemoSetup(Job):
     def _delete_feature_table(self):
         """
         Delete Feature Store feature table
-
-        TODO: UPDATE this method once the public API to delete a feature table has been released. Currently uses protected class
         """
-        ####################################################################
-        # DELETE once public API to delete feature table
-        rq = RequestContext(feature_store_method_name='test_only_method')
-        fs._catalog_client.delete_feature_table(self.conf['feature_store_table'], req_context=rq)
-        _logger.info(f'Deleted Feature Store feature table: {self.conf["feature_store_table"]}')
-        ####################################################################
+        try:
+            fs.drop_table(
+                name=self.conf['feature_store_table']
+            )
+            _logger.info(f'Deleted Feature Store feature table: {self.conf["feature_store_table"]}')
+        except ValueError:
+            _logger.info(f'Feature Store feature table: {self.conf["feature_store_table"]} does not exist')
 
     def _check_labels_delta_table_exists(self) -> bool:
         try:
@@ -184,8 +196,9 @@ class DemoSetup(Job):
         _logger.info('==========Demo Setup=========')
 
         _logger.info('Checking MLflow Model Registry...')
-        if self._check_mlflow_model_registry_exists():
-            self._delete_registered_model()
+        model_registry_name = os.getenv('model_registry_name')
+        if self._check_mlflow_model_registry_exists(model_registry_name):
+            self._delete_registered_model(model_registry_name)
 
         _logger.info('Checking MLflow Tracking...')
         exp_exists_dict = self._check_mlflow_experiments_exists()
