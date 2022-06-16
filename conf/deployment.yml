@@ -12,34 +12,31 @@ custom:
     model_deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment_prod'
 
   # Cluster configs for each environment
-  basic-cluster-props: &basic-cluster-props
+  default-cluster-spec: &default-cluster-spec
     spark_version: "10.5.x-cpu-ml-scala2.12"
+    node_type_id: "i3.xlarge"
+    driver_node_type_id: "i3.xlarge"
+    num_workers: 1
 
-  dev-cluster: &dev-cluster
+  dev-cluster-config: &dev-cluster-config
     new_cluster:
-      <<: *basic-cluster-props
-      num_workers: 1
-      node_type_id: "i3.xlarge"
+      <<: *default-cluster-spec
       spark_env_vars:
         DEPLOYMENT_ENV: dev
-        <<: [*mlflow-params-dev]
+        <<: *mlflow-params-dev
 
-  staging-cluster: &staging-cluster
+  staging-cluster-config: &staging-cluster-config
     new_cluster:
-      <<: *basic-cluster-props
-      num_workers: 1
-      node_type_id: "i3.xlarge"
+      <<: *default-cluster-spec
       spark_env_vars:
         DEPLOYMENT_ENV: staging
 
-  prod-cluster: &prod-cluster
+  prod-cluster-config: &prod-cluster-config
     new_cluster:
-      <<: *basic-cluster-props
-      num_workers: 1
-      node_type_id: "i3.xlarge"
+      <<: *default-cluster-spec
       spark_env_vars:
         DEPLOYMENT_ENV: prod
-        <<: [*mlflow-params-prod]
+        <<: *mlflow-params-prod
 
 # Databricks Jobs definitions
 # please note that we're using FUSE reference for config file, hence we're going to load this file using its local FS path
@@ -49,37 +46,36 @@ environments:
     strict_path_adjustment_policy: true
     jobs:
       - name: "demo-setup"
-        <<:
-          - *dev-cluster
+        <<: *dev-cluster-config
         spark_python_task:
           python_file: "file://telco_churn/jobs/demo_setup_job.py"
           parameters: [ "--conf-file", "file:fuse://conf/job_configs/demo_setup.yml" ]
       - name: "feature-table-creation"
-        <<: *dev-cluster
+        <<: *dev-cluster-config
         spark_python_task:
           python_file: "file://telco_churn/jobs/feature_table_creator_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/feature_table_creation.yml"]
       - name: "model-train"
         <<:
-          - *dev-cluster
+          - *dev-cluster-config
         spark_python_task:
           python_file: "file://telco_churn/jobs/model_train_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/model_train.yml"]
       - name: "model-deployment"
         <<:
-          - *dev-cluster
+          - *dev-cluster-config
         spark_python_task:
           python_file: "file://telco_churn/jobs/model_deployment_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/model_deployment.yml"]
       - name: "model-inference-batch"
         <<:
-          - *dev-cluster
+          - *dev-cluster-config
         spark_python_task:
           python_file: "file://telco_churn/jobs/model_inference_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/model_inference.yml"]
       - name: "sample-integration-test"
         <<:
-          - *dev-cluster
+          - *dev-cluster-config
         spark_python_task:
           python_file: "file://tests/integration/sample_test.py"
           parameters: [ "--conf-file", "file:fuse://conf/job_configs/sample_test.yml" ]
@@ -89,7 +85,7 @@ environments:
     jobs:
       - name: "sample-integration-test"
         <<:
-          - *staging-cluster
+          - *staging-cluster-config
         spark_python_task:
           python_file: "file://tests/integration/sample_test.py"
           parameters: [ "--conf-file", "file:fuse://conf/job_configs/sample_test.yml" ]
@@ -101,19 +97,19 @@ environments:
         tasks:
           - task_key: "demo-setup"
             <<:
-              - *prod-cluster
+              - *prod-cluster-config
             spark_python_task:
               python_file: "file://telco_churn/jobs/demo_setup_job.py"
               parameters: [ "--conf-file", "file:fuse://conf/job_configs/demo_setup.yml" ]
           - task_key: "feature-table-creation"
-            <<: *prod-cluster
+            <<: *prod-cluster-config
             depends_on:
               - task_key: "demo-setup"
             spark_python_task:
               python_file: "file://telco_churn/jobs/feature_table_creator_job.py"
               parameters: ["--conf-file", "file:fuse://conf/job_configs/feature_table_creation.yml"]
           - task_key: "model-train"
-            <<: *prod-cluster
+            <<: *prod-cluster-config
             depends_on:
               - task_key: "demo-setup"
               - task_key: "feature-table-creation"
@@ -122,19 +118,19 @@ environments:
               parameters: ["--conf-file", "file:fuse://conf/job_configs/model_train.yml"]
       - name: "model-train"
         <<:
-          - *prod-cluster
+          - *prod-cluster-config
         spark_python_task:
           python_file: "file://telco_churn/jobs/model_train_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/model_train.yml"]
       - name: "model-deployment"
         <<:
-          - *prod-cluster
+          - *prod-cluster-config
         spark_python_task:
           python_file: "file://telco_churn/jobs/model_deployment_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/model_deployment.yml"]
       - name: "model-inference-batch"
         <<:
-          - *prod-cluster
+          - *prod-cluster-config
         spark_python_task:
           python_file: "file://telco_churn/jobs/model_inference_job.py"
           parameters: ["--conf-file", "file:fuse://conf/job_configs/model_inference.yml"]

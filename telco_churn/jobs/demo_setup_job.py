@@ -58,10 +58,7 @@ class DemoSetup(Job):
         _logger.info(f'Deleted MLflow Model Registry model: {model_registry_name}')
 
     @staticmethod
-    def _check_mlflow_experiments_exists(train_experiment_id: int = None,
-                                         train_experiment_path: str = None,
-                                         deploy_experiment_id: int = None,
-                                         deploy_experiment_path: str = None) -> dict:
+    def _check_mlflow_experiments_exists() -> dict:
         """
         The demo workflow consists of creating 2 MLflow Tracking experiments:
             * train_experiment - Experiment used to track params, metrics, artifacts during model training
@@ -76,6 +73,10 @@ class DemoSetup(Job):
         -------
         Dictionary indicating whether train and deploy MLflow experiments currently exist
         """
+        train_experiment_id = os.getenv('model_train_experiment_id')    # will be None if not passed
+        train_experiment_path = os.getenv('model_train_experiment_path')
+        deploy_experiment_id = os.getenv('model_deploy_experiment_id')
+        deploy_experiment_path = os.getenv('model_deploy_experiment_path')
 
         def check_by_experiment_id(experiment_id):
             try:
@@ -114,7 +115,8 @@ class DemoSetup(Job):
         return {'train_exp_exists': train_exp_exists,
                 'deploy_exp_exists': deploy_exp_exists}
 
-    def _delete_mlflow_experiments(self, exp_exists_dict: dict):
+    @staticmethod
+    def _delete_mlflow_experiments(exp_exists_dict: dict):
         """
         Check exp_exists_dict if train_exp_exists or deploy_exp_exists is True. Delete experiments if they exist
 
@@ -218,10 +220,9 @@ class DemoSetup(Job):
         """
         Launch DemoSetup job
         """
-        _logger.info("Launching DemoSetup job")
+        _logger.info('Launching DemoSetup job')
         DemoSetup().setup()
-        _logger.info("DemoSetup job finished!")
-
+        _logger.info('DemoSetup job finished!')
 
 if __name__ == "__main__":
     job = DemoSetup()
