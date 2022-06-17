@@ -17,11 +17,14 @@ class ModelInferenceJob(Job):
 
         return model_uri
 
-    def _get_inference_data(self) -> str:
+    @staticmethod
+    def _get_inference_data() -> str:
         """
         Get the name of the table to perform inference on
         """
-        return self.conf['data_input']['table_name']
+        inference_database_name = os.getenv('inference_database_name')
+        inference_table_name = os.getenv('inference_table_name')
+        return f'{inference_database_name}.{inference_table_name}'
 
     def _get_predictions_output_params(self) -> Dict:
         """

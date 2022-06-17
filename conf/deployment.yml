@@ -23,7 +23,11 @@ custom:
     labels_table_name: 'churn_labels'
     labels_table_label_col: 'churn'
     labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_labels.delta'
-    # Predictions table params
+    # Batch inference input table params
+    # For demo purposes we use the churn_labels table
+    inference_database_name: 'e2e_mlops_dev'
+    inference_table_name: 'churn_labels'
+    # Batch inference predictions table params
     predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_predictions.delta'
     predictions_table_database_name: 'e2e_mlops_dev'
     predictions_table_name: 'churn_predictions'
@@ -45,7 +49,11 @@ custom:
     labels_table_name: 'churn_labels'
     labels_table_label_col: 'churn'
     labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_labels.delta'
-    # Predictions table params
+    # Batch inference input table params
+    # For demo purposes we use the churn_labels table
+    inference_database_name: 'e2e_mlops_prod'
+    inference_table_name: 'churn_labels'
+    # Batch inference predictions table params
     predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_predictions.delta'
     predictions_table_database_name: 'e2e_mlops_prod'
     predictions_table_name: 'churn_predictions'
