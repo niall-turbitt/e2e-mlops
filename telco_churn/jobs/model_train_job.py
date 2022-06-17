@@ -21,7 +21,7 @@ class ModelTrainJob(Job):
         feature_store_params = {'table_name': f'{feature_store_database_name}.{feature_store_table_name}',
                                 'primary_keys': os.getenv('feature_store_table_primary_keys')}
         labels_table_database_name = os.getenv('labels_table_database_name')
-        labels_table_name = os.getenv('feature_store_table_name')
+        labels_table_name = os.getenv('labels_table_name')
         labels_table_params = {'table_name': f'{labels_table_database_name}.{labels_table_name}'}
 
         return {'feature_store_params': feature_store_params,
