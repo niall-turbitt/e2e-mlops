@@ -13,8 +13,3 @@ drop_feature_table: True
 # Drop labels table if it exists
 # Label table name set in deployment.yml
 drop_labels_table: True
-
-
-# TODO: nest as data_params
-feature_store_table: 'e2e_mlops_testing.churn_features'
-labels_table_path: 'dbfs:/tmp/e2e_mlops/churn_labels.delta'

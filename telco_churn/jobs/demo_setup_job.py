@@ -149,43 +149,57 @@ class DemoSetup(Job):
                 mlflow.delete_experiment(experiment_id=os.getenv('model_deploy_experiment_id'))
                 _logger.info(f'Deleted existing experiment_id: {os.getenv("model_deploy_experiment_id")}')
 
-    def _check_feature_table_exists(self) -> bool:
+    @staticmethod
+    def _check_feature_table_exists(feature_store_table) -> bool:
         """
         Check if Feature Store feature table exists
         Returns True if feature table exists in Feature Store, False if not
         """
         try:
-            fs.get_table(name=self.conf['feature_store_table'])
-            _logger.info(f'Feature Store feature table: {self.conf["feature_store_table"]} exists')
+            fs.get_table(name=feature_store_table)
+            _logger.info(f'Feature Store feature table: {feature_store_table} exists')
             return True
         except (ValueError, Exception):
-            _logger.info(f'Feature Store feature table: {self.conf["feature_store_table"]} DOES NOT exist')
+            _logger.info(f'Feature Store feature table: {feature_store_table} DOES NOT exist')
             return False
 
-    def _delete_feature_table(self):
+    @staticmethod
+    def _drop_feature_table(feature_store_table):
         """
         Delete Feature Store feature table
         """
         try:
             fs.drop_table(
-                name=self.conf['feature_store_table']
+                name=feature_store_table
             )
-            _logger.info(f'Deleted Feature Store feature table: {self.conf["feature_store_table"]}')
+            _logger.info(f'Deleted Feature Store feature table: {feature_store_table}')
         except ValueError:
-            _logger.info(f'Feature Store feature table: {self.conf["feature_store_table"]} does not exist')
+            _logger.info(f'Feature Store feature table: {feature_store_table} does not exist')
 
-    def _check_labels_delta_table_exists(self) -> bool:
+    def _check_labels_delta_table_exists(self, labels_table_dbfs_path) -> bool:
+        """
+        Check if Delta table exists in DBFS
+
+        Parameters
+        ----------
+        labels_table_dbfs_path : str
+            Path to Delta table in DBFS
+
+        Returns
+        -------
+        bool
+        """
         try:
-            _logger.info(f'Labels Delta table: {self.conf["labels_table_path"]} exists')
-            self.dbutils.fs.ls(self.conf['labels_table_path'])
+            _logger.info(f'Labels Delta table: {labels_table_dbfs_path} exists')
+            self.dbutils.fs.ls(labels_table_dbfs_path)
             return True
         except:
-            _logger.info(f'Labels Delta table: {self.conf["labels_table_path"]} does not exist')
+            _logger.info(f'Labels Delta table: {labels_table_dbfs_path} does not exist')
             return False
 
-    def _delete_labels_delta_table(self):
-        self.dbutils.fs.rm(self.conf['labels_table_path'], True)
-        _logger.info(f'Deleted labels Delta table: {self.conf["labels_table_path"]}')
+    def _delete_labels_delta_table(self, labels_table_dbfs_path):
+        self.dbutils.fs.rm(labels_table_dbfs_path, True)
+        _logger.info(f'Deleted labels Delta table: {labels_table_dbfs_path}')
 
     def setup(self):
         """
@@ -196,22 +210,30 @@ class DemoSetup(Job):
         """
         _logger.info('==========Demo Setup=========')
 
-        _logger.info('Checking MLflow Model Registry...')
-        model_registry_name = os.getenv('model_registry_name')
-        if self._check_mlflow_model_registry_exists(model_registry_name):
-            self._delete_registered_model(model_registry_name)
+        if self.conf['delete_model_registry']:
+            _logger.info('Checking MLflow Model Registry...')
+            model_registry_name = os.getenv('model_registry_name')
+            if self._check_mlflow_model_registry_exists(model_registry_name):
+                self._delete_registered_model(model_registry_name)
 
-        _logger.info('Checking MLflow Tracking...')
-        exp_exists_dict = self._check_mlflow_experiments_exists()
-        self._delete_mlflow_experiments(exp_exists_dict)
+        if self.conf['delete_mlflow_experiments']:
+            _logger.info('Checking MLflow Tracking...')
+            exp_exists_dict = self._check_mlflow_experiments_exists()
+            self._delete_mlflow_experiments(exp_exists_dict)
 
-        _logger.info('Checking Feature Store...')
-        if self._check_feature_table_exists():
-            self._delete_feature_table()
+        if self.conf['drop_feature_table']:
+            _logger.info('Checking Feature Store...')
+            feature_store_params = os.getenv('feature_store_params')
+            feature_store_table = f'{feature_store_params["database_name"]}.{feature_store_params["table_name"]}'
+            if self._check_feature_table_exists(feature_store_table=feature_store_table):
+                self._drop_feature_table(feature_store_table=feature_store_table)
 
-        _logger.info('Checking existing labels table...')
-        if self._check_labels_delta_table_exists():
-            self._delete_labels_delta_table()
+        if self.conf['drop_labels_table']:
+            _logger.info('Checking existing labels table...')
+            labels_table_params = os.getenv('labels_table_params')
+            labels_table_dbfs_path = labels_table_params['dbfs_path']
+            if self._check_labels_delta_table_exists(labels_table_dbfs_path=labels_table_dbfs_path):
+                self._delete_labels_delta_table(labels_table_dbfs_path=labels_table_dbfs_path)
 
         _logger.info('==========Demo Setup Complete=========')
 
