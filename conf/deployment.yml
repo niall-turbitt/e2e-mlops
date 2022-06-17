@@ -126,6 +126,11 @@ environments:
   prod:
     strict_path_adjustment_policy: true
     jobs:
+      - name: 'demo-setup'
+        <<: *dev-cluster-config
+        spark_python_task:
+          python_file: 'file://telco_churn/jobs/demo_setup_job.py'
+          parameters: [ '--conf-file', 'file:fuse://conf/job_configs/demo_setup.yml' ]
       - name: 'initial-model-train-register'
         tasks:
           - task_key: 'demo-setup'

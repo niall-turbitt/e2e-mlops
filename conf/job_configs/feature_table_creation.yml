@@ -11,15 +11,3 @@ data_prep_params:
 #             'techSupport', 'streamingTV', 'streamingMovies',
 #             'contract', 'paperlessBilling', 'paymentMethod']
   drop_missing: False
-
-feature_store_params:
-  database_name: 'e2e_mlops_testing'
-  table_name: 'churn_features'
-  primary_keys: 'customerID'
-  description: 'These features are derived from the field_demos_retail.bronze_customers table in the lakehouse.  We created dummy variables for the categorical columns, cleaned up their names, and added a boolean flag for whether the customer churned or not.  No aggregations were performed.'
-
-labels_table_params:
-  database_name: 'e2e_mlops_testing'
-  table_name: 'churn_labels'
-  label_col: 'churn'
-  dbfs_path: 'dbfs:/tmp/e2e_mlops/churn_labels.delta'
