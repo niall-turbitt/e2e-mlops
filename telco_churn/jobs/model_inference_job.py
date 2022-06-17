@@ -17,6 +17,10 @@ class ModelInferenceJob(Job):
         model_registry_stage = self.conf['mlflow_params']['model_registry_stage']
         model_uri = f'models:/{model_registry_name}/{model_registry_stage}'
 
+        predictions_table_database_name = os.getenv('predictions_table_database_name')
+        predictions_table_name = os.getenv('predictions_table_name')
+        predictions_table_name =
+
         ModelInference(model_uri=model_uri,
                        inference_data=self.conf['data_input']['table_name'])\
             .run_and_write_batch(delta_path=self.conf['data_output']['delta_path'],
