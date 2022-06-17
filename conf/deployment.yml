@@ -65,6 +65,7 @@ custom:
     reference_table_label_col: 'churn'
 
   # Cluster configs for each environment
+  # For demo purposes we will use a warm pool to acquire instances from
   default-cluster-spec: &default-cluster-spec
     spark_version: '11.0.x-cpu-ml-scala2.12'
 #    node_type_id: 'i3.xlarge' # node_type_id and driver_node_type_id cannot be supplied when an instance 'pool ID is provided

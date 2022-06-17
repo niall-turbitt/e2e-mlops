@@ -1,5 +1,5 @@
 data_ingest_params:
-  input_table: 'default.telco_churn'
+  input_table: 'ibm_telco_churn.bronze_customers'
 
 data_prep_params:
   label_col: 'churnString'

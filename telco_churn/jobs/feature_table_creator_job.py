@@ -23,7 +23,7 @@ class FeatureTableCreatorJob(Job):
                 'description': os.getenv('feature_store_table_description')}
 
     @staticmethod
-    def _get_labels_table_params(self):
+    def _get_labels_table_params():
         return {'database_name': os.getenv('labels_table_database_name'),
                 'table_name': os.getenv('labels_table_name'),
                 'label_col': os.getenv('labels_table_label_col'),
@@ -38,7 +38,7 @@ class FeatureTableCreatorJob(Job):
         FeatureTableCreator(data_ingest_params=self._get_data_ingest_params(),
                             data_prep_params=self._get_data_prep_params(),
                             feature_store_params=self._get_feature_store_params(),
-                            labels_table_params=labels_table_params).run()
+                            labels_table_params=self._get_labels_table_params()).run()
         _logger.info("FeatureTableCreator job finished!")
 
 
