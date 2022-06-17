@@ -1,3 +1,5 @@
+import os
+
 from telco_churn.common import Job
 from telco_churn.model_deployment import ModelDeployment
 from telco_churn.utils.logger_utils import get_logger
@@ -9,6 +11,7 @@ class ModelDeploymentJob(Job):
 
     def launch(self):
         _logger.info('Launching ModelDeploymentJob job')
+        _logger.info(f'Running model-deployment pipeline in {os.getenv("DEPLOYMENT_ENV")} environment')
         ModelDeployment(mlflow_params=self.conf['mlflow_params'],
                         reference_data=self.conf['data_input']['table_name'],
                         label_col=self.conf['data_input']['label_col'],
