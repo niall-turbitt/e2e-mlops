@@ -29,6 +29,7 @@ class ModelTrainJob(Job):
 
     def launch(self):
         _logger.info('Launching ModelTrainJob job')
+        _logger.info(f'Running model-train pipeline in {os.getenv("DEPLOYMENT_ENV")} environment')
 
         ModelTrain(mlflow_params=self._get_mlflow_params(),
                    data_input=self._get_data_input(),
