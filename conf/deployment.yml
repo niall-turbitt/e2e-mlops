@@ -13,36 +13,36 @@ custom:
 
   # Global data params for each environment
   data-params-dev: &data-params-dev
-    feature_store_params:
-      database_name: 'e2e_mlops_dev'
-      table_name: 'churn_features'
-      primary_keys: 'customerID'
-      description: 'These features are derived from the field_demos_retail.bronze_customers table in the lakehouse.  We created dummy variables for the categorical columns, cleaned up their names, and added a boolean flag for whether the customer churned or not.  No aggregations were performed.'
-    labels_table_params:
-      database_name: 'e2e_mlops_dev'
-      table_name: 'churn_labels'
-      label_col: 'churn'
-      dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_labels.delta'
-    predictions_table_params:
-      delta_path: 'dbfs:/tmp/e2e_mlops/churn_predictions.delta'
-      database_name: 'e2e_mlops_dev'
-      table_name: 'churn_predictions'
+    # Feature Store params
+    feature_store_database_name: 'e2e_mlops_dev'
+    feature_store_table_name: 'churn_features'
+    feature_store_table_primary_keys: 'customerID'
+    feature_store_table_description: 'These features are derived from the field_demos_retail.bronze_customers table in the lakehouse.  We created dummy variables for the categorical columns, cleaned up their names, and added a boolean flag for whether the customer churned or not.  No aggregations were performed.'
+    # Labels table params
+    labels_table_database_name: 'e2e_mlops_dev'
+    labels_table_name: 'churn_labels'
+    labels_table_label_col: 'churn'
+    labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_labels.delta'
+    # Predictions table params
+    predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_predictions.delta'
+    predictions_table_database_name: 'e2e_mlops_dev'
+    predictions_table_name: 'churn_predictions'
 
   data-params-prod: &data-params-prod
-    feature_store_params:
-      database_name: 'e2e_mlops_prod'
-      table_name: 'churn_features'
-      primary_keys: 'customerID'
-      description: 'These features are derived from the field_demos_retail.bronze_customers table in the lakehouse.  We created dummy variables for the categorical columns, cleaned up their names, and added a boolean flag for whether the customer churned or not.  No aggregations were performed.'
-    labels_table_params:
-      database_name: 'e2e_mlops_prod'
-      table_name: 'churn_labels'
-      label_col: 'churn'
-      dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_labels.delta'
-    predictions_table_params:
-      delta_path: 'dbfs:/tmp/e2e_mlops_prod/churn_predictions.delta'
-      database_name: 'e2e_mlops_prod'
-      table_name: 'churn_predictions'
+    # Feature Store params
+    feature_store_database_name: 'e2e_mlops_prod'
+    feature_store_table_name: 'churn_features'
+    feature_store_table_primary_keys: 'customerID'
+    feature_store_table_description: 'These features are derived from the field_demos_retail.bronze_customers table in the lakehouse.  We created dummy variables for the categorical columns, cleaned up their names, and added a boolean flag for whether the customer churned or not.  No aggregations were performed.'
+    # Labels table params
+    labels_table_database_name: 'e2e_mlops_prod'
+    labels_table_name: 'churn_labels'
+    labels_table_label_col: 'churn'
+    labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_labels.delta'
+    # Predictions table params
+    predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_predictions.delta'
+    predictions_table_database_name: 'e2e_mlops_prod'
+    predictions_table_name: 'churn_predictions'
 
   # Cluster configs for each environment
   default-cluster-spec: &default-cluster-spec

@@ -223,15 +223,15 @@ class DemoSetup(Job):
 
         if self.conf['drop_feature_table']:
             _logger.info('Checking Feature Store...')
-            feature_store_params = os.getenv('feature_store_params')
-            feature_store_table = f'{feature_store_params["database_name"]}.{feature_store_params["table_name"]}'
+            feature_store_database_name = os.getenv('feature_store_database_name')
+            feature_store_table_name = os.getenv('feature_store_table_name')
+            feature_store_table = f'{feature_store_database_name}.{feature_store_table_name}'
             if self._check_feature_table_exists(feature_store_table=feature_store_table):
                 self._drop_feature_table(feature_store_table=feature_store_table)
 
         if self.conf['drop_labels_table']:
             _logger.info('Checking existing labels table...')
-            labels_table_params = os.getenv('labels_table_params')
-            labels_table_dbfs_path = labels_table_params['dbfs_path']
+            labels_table_dbfs_path = os.getenv('labels_table_dbfs_path')
             if self._check_labels_delta_table_exists(labels_table_dbfs_path=labels_table_dbfs_path):
                 self._delete_labels_delta_table(labels_table_dbfs_path=labels_table_dbfs_path)
 
