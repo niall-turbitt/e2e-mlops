@@ -1,12 +1,19 @@
-mlflow_params:
-  # Experiment used to track training
-#  train_experiment_id: 1366206427888150
-  train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops'
+# Delete MLflow Registry model
+# Model name set in deployment.yml
+delete_model_registry: True
 
-  # Experiment used to track model deployment
-#  deploy_experiment_id: 4406129218115459
-  deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment'
-  model_registry_name: 'e2e_mlops_telco_churn'
+# Delete MLflow Tracking experiments (both the training experiment and the deployment experiment)
+# Experiment paths/id set in deployment.yml
+delete_mlflow_experiments: True
+
+# Drop Feature Store feature table if it exists
+# Feature table name set in deployment.yml
+drop_feature_table: True
+
+# Drop labels table if it exists
+# Label table name set in deployment.yml
+drop_labels_table: True
+
 
 # TODO: nest as data_params
 feature_store_table: 'e2e_mlops_testing.churn_features'
