@@ -27,14 +27,19 @@ class ModelTrainJob(Job):
         return {'feature_store_params': feature_store_params,
                 'labels_table_params': labels_table_params}
 
+    def _get_pipeline_params(self):
+        return self.conf['pipeline_params']
+
+    def _get_model_params(self):
+        return self.conf['model_params']
+
     def launch(self):
         _logger.info('Launching ModelTrainJob job')
         _logger.info(f'Running model-train pipeline in {os.getenv("DEPLOYMENT_ENV")} environment')
-
         ModelTrain(mlflow_params=self._get_mlflow_params(),
                    data_input=self._get_data_input(),
-                   pipeline_params=self.conf['pipeline_params'],
-                   model_params=self.conf['model_params'],
+                   pipeline_params=self._get_pipeline_params(),
+                   model_params=self._get_model_params(),
                    conf=self.conf).run()
         _logger.info('ModelTrainJob job finished!')
 
