@@ -27,6 +27,12 @@ custom:
     predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_predictions.delta'
     predictions_table_database_name: 'e2e_mlops_dev'
     predictions_table_name: 'churn_predictions'
+    # Reference table params - table to use for comparing staging vs production models
+    # For demo purposes we use the churn_labels table. However this reference table in practice would be a curated dataset
+    # Note: this table must contain column(s) for lookup keys to join feature data from Feature Store
+    reference_table_database_name: 'e2e_mlops_dev'
+    reference_table_name: 'churn_labels'
+    reference_table_label_col: 'churn'
 
   data-params-prod: &data-params-prod
     # Feature Store params
@@ -43,6 +49,12 @@ custom:
     predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_predictions.delta'
     predictions_table_database_name: 'e2e_mlops_prod'
     predictions_table_name: 'churn_predictions'
+    # Reference table params - table to use for comparing staging vs production models
+    # For demo purposes we use the churn_labels table. However this reference table in practice would be a curated dataset
+    # Note: this table must contain column(s) for lookup keys to join feature data from Feature Store
+    reference_table_database_name: 'e2e_mlops_prod'
+    reference_table_name: 'churn_labels'
+    reference_table_label_col: 'churn'
 
   # Cluster configs for each environment
   default-cluster-spec: &default-cluster-spec
