@@ -11,7 +11,7 @@ class ModelTrainJob(Job):
 
     def _get_mlflow_params(self):
         return {'experiment_path': os.getenv('model_train_experiment_path'),
-                'run_name': self.conf['run_name'],
+                'run_name': self.conf['mlflow_params']['run_name'],
                 'model_registry_name': os.getenv('model_registry_name')}
 
     @staticmethod
