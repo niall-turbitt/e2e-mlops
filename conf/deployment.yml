@@ -127,7 +127,7 @@ environments:
     strict_path_adjustment_policy: true
     jobs:
       - name: 'demo-setup'
-        <<: *dev-cluster-config
+        <<: *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/demo_setup_job.py'
           parameters: [ '--conf-file', 'file:fuse://conf/job_configs/demo_setup.yml' ]

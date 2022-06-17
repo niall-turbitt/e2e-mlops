@@ -209,6 +209,7 @@ class DemoSetup(Job):
         * Delete Feature Table if exists
         """
         _logger.info('==========Demo Setup=========')
+        _logger.info(f'Running demo-setup pipeline in {os.getenv("DEPLOYMENT_ENV")} environment')
 
         if self.conf['delete_model_registry']:
             _logger.info('Checking MLflow Model Registry...')

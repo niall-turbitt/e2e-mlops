@@ -14,6 +14,7 @@ class FeatureTableCreatorJob(Job):
         Launch FeatureStoreTableCreator job
         """
         _logger.info("Launching FeatureTableCreator job")
+        _logger.info(f'Running feature-table-creation pipeline in {os.getenv("DEPLOYMENT_ENV")} environment')
 
         feature_store_params = {'database_name': os.getenv('feature_store_database_name'),
                                 'table_name': os.getenv('feature_store_table_name'),
