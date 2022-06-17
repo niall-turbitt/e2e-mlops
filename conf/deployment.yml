@@ -105,7 +105,7 @@ environments:
           - *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/model_inference_job.py'
-          parameters: ['--conf-file', 'file:fuse://conf/job_configs/model_inference.yml']
+          parameters: ['--conf-file', 'file:fuse://conf/job_configs/model_inference_batch.yml']
       - name: 'sample-integration-test'
         <<:
           - *dev-cluster-config
@@ -171,4 +171,4 @@ environments:
           - *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/model_inference_job.py'
-          parameters: ['--conf-file', 'file:fuse://conf/job_configs/model_inference.yml']
+          parameters: ['--conf-file', 'file:fuse://conf/job_configs/model_inference_batch.yml']
