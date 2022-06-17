@@ -8,7 +8,6 @@ from telco_churn.common import Job
 from telco_churn.utils.logger_utils import get_logger
 
 from databricks.feature_store.client import FeatureStoreClient
-from databricks.feature_store.utils.request_context import RequestContext
 
 client = MlflowClient()
 fs = FeatureStoreClient()
@@ -223,6 +222,7 @@ class DemoSetup(Job):
         _logger.info('Launching DemoSetup job')
         DemoSetup().setup()
         _logger.info('DemoSetup job finished!')
+
 
 if __name__ == "__main__":
     job = DemoSetup()
