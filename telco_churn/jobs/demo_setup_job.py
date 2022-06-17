@@ -190,11 +190,11 @@ class DemoSetup(Job):
         bool
         """
         try:
-            _logger.info(f'Labels Delta table: {labels_table_dbfs_path} exists')
             self.dbutils.fs.ls(labels_table_dbfs_path)
+            _logger.info(f'Labels Delta table: {labels_table_dbfs_path} exists')
             return True
         except:
-            _logger.info(f'Labels Delta table: {labels_table_dbfs_path} does not exist')
+            _logger.info(f'Labels Delta table: {labels_table_dbfs_path} DOES NOT exist')
             return False
 
     def _delete_labels_delta_table(self, labels_table_dbfs_path):
