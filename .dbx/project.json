@@ -1,17 +1,17 @@
 {
     "environments": {
         "dev": {
-            "profile": "demo",
+            "profile": "e2-demo-west",
             "workspace_dir": "/Shared/dbx/e2e_mlops_dev",
             "artifact_location": "dbfs:/home/niall/dbx/projects/e2e_mlops_dev"
         },
         "staging": {
-            "profile": "demo",
+            "profile": "e2-demo-west",
             "workspace_dir": "/Shared/dbx/e2e_mlops_staging",
             "artifact_location": "dbfs:/home/niall/dbx/projects/e2e_mlops_staging"
         },
         "prod": {
-            "profile": "demo",
+            "profile": "e2-demo-west",
             "workspace_dir": "/Shared/dbx/e2e_mlops_prod",
             "artifact_location": "dbfs:/home/niall/dbx/projects/e2e_mlops_prod"
         }

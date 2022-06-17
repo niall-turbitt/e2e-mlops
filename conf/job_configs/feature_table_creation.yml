@@ -1,5 +1,5 @@
 data_ingest_params:
-  input_table: 'field_demos_retail.customer_churn_bronze'
+  input_table: 'default.telco_churn'
 
 data_prep_params:
   label_col: 'churnString'
