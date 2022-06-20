@@ -11,27 +11,32 @@ Note that the package is solely developed via an IDE, and as such there are no D
 
 The following pipelines currently defined within the package are:
 - `demo-setup`
-    - Deletes existing feature store tables, existing MLflow experiments and models registered to MLflow Model Registry, in order to start afresh for a demo  
+    - Deletes existing feature store tables, existing MLflow experiments and models registered to MLflow Model Registry, 
+      in order to start afresh for a demo.  
 - `feature-table-creation`
-    - Creates new feature table and separate labels Delta table
+    - Creates new feature table and separate labels Delta table.
 - `model-train`
     - Trains a scikit-learn Random Forest model  
 - `model-deployment`
-    - Compare the Staging versus Production models in the MLflow Model Registry. Transition the Staging model to Production if outperforming the current Production model
+    - Compare the Staging versus Production models in the MLflow Model Registry. Transition the Staging model to 
+      Production if outperforming the current Production model.
 - `model-inference-batch`
-    - Load a model from MLflow Model Registry, load features from Feature Store and score batch
+    - Load a model from MLflow Model Registry, load features from Feature Store and score batch.
 
 ## Demo
-The following outlines the workflow to demo the e2e-mlops repo.
+The following outlines the workflow to demo the repo.
 
 ### Set up
-1. Spin up an interactive cluster 
 1. Clone https://github.com/niall-turbitt/e2e-mlops
+   - `git clone https://github.com/niall-turbitt/e2e-mlops.git`
 1. Configure [Databricks CLI connection profile](https://docs.databricks.com/dev-tools/cli/index.html#connection-profiles)
-    - The project is currently configured to use a connection profile called “demo”.
-    - This is set in [`e2e-mlops/.dbx/project.json`](https://github.com/niall-turbitt/e2e-mlops/blob/main/.dbx/project.json) and configured when the project was originally created with the [`dbx` basic python template](https://dbx.readthedocs.io/en/latest/templates/python_basic.html).
-    - If your Databricks CLI connection profile is named something other than “demo”, you will need to update the profile field in [`project.json`](https://github.com/niall-turbitt/e2e-mlops/blob/main/.dbx/project.json).
-1. Configure Databricks secrets GitHub (for GitHub Actions)
+    - The project is designed to use 3 different Databricks CLI connection profiles: dev, staging and prod. 
+      These profiles are set in [e2e-mlops/.dbx/project.json](https://github.com/niall-turbitt/e2e-mlops/blob/main/.dbx/project.json).
+    - Note that for demo purposes we use the same connection profile for each of the 3 environments. 
+      **In practice each profile would correspond to separate dev, staging and prod Databricks workspaces.**
+    - This [project.json](https://github.com/niall-turbitt/e2e-mlops/blob/main/.dbx/project.json) file will have to be 
+      adjusted accordingly to the connection profiles a user has configured on their local machine.
+1. Configure Databricks secrets for GitHub Actions
     - Within the GitHub project navigate to Secrets under the project settings
     - To run the GitHub actions workflows we require the following GitHub actions secrets:
         - `DATABRICKS_STAGING_HOST`
@@ -49,37 +54,53 @@ The following outlines the workflow to demo the e2e-mlops repo.
     
     The following resources should not be present if starting from scratch: 
     - Feature table must be deleted
-        - The table `e2e_mlops_testing.churn_features` will be created when `feature-table-creation` pipeline is triggered
-        - Currently, the table must be deleted through the Feature Store UI
+        - The table e2e_mlops_testing.churn_features will be created when the feature-table-creation pipeline is triggered.
     - MLflow experiment
-        - Either create an experiment via the UI and specify the experiment_id in the [`model_train.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_train.yml) conf file or;
-        - Specify a path within the workspace to use via the experiment_path param in the [`model_train.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_train.yml) conf file
+        - MLflow Experiments during model training and model deployment will be used in both the dev and prod environments. 
+          The paths to these experiments are configured in [conf/deployment.yml](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/deployment.yml).
+        - For demo purposes, we delete these experiments if they exist to begin from a blank slate.
     - Model Registry
-        - Delete Model in MLflow Model Registry if exists
+        - Delete Model in MLflow Model Registry if exists.
     
-    **NOTE:** As part of the `initial-model-train-register` multitask job, the first task, `demo-setup` will delete these, as specified in [`demo_setup.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/demo_setup.yml).
+    **NOTE:** As part of the `initial-model-train-register` multitask job, the first task `demo-setup` will delete these, 
+   as specified in [`demo_setup.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/demo_setup.yml).
 
 ### Workflow
 
 1. **Run `initial-model-train-register` multitask job**
 
-    - Automated job cluster (**NOTE**: multitask jobs can only be run via `dbx deploy` currently)
-        - ``dbx deploy --jobs=initial-model-train-register --files-only``
-        - ``dbx launch --job=initial-model-train-register --as-run-submit --trace``
-    
+    - To demonstrate a CICD workflow, we want to start from a “steady state” where there is a current model in production. 
+      As such, we will manually trigger a multitask job to do the following steps:
+      1. Set up the workspace for the demo by deleting existing MLflow experiments and register models, along with 
+         existing Feature Store and labels tables. 
+      1. Create a new Feature Store table to be used by the model training pipeline.
+      1. Train an initial “baseline” model
+    - There is then a final manual step to promote this newly trained model to production via the MLflow Model Registry UI.
+
+    - Outlined below are the detailed steps to do this:
+
+        1. Run the multitask `initial-model-train-register` job via an automated job cluster 
+           (NOTE: multitask jobs can only be run via `dbx deploy; dbx launch` currently).
+           ```
+           dbx deploy --jobs=initial-model-train-register -–environment=prod --files-only
+           dbx launch --job=initial-model-train-register -–environment=prod --as-run-submit --trace
+           ```
+           See the Limitations section below regarding running multitask jobs. In order to reduce cluster start up time
+           you may want to consider using a [Databricks pool](https://docs.databricks.com/clusters/instance-pools/index.html), 
+           and specify this pool ID in [`conf/deployment.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/deployment.yml).
     - `initial-model-train-register` tasks:
-    1. Demo setup task steps (`demo-setup`)
-        1. Delete Model Registry model if exists (archive any existing models)
-        1. Delete MLflow experiment if exists
-        1. Delete Feature Table if exists
-    1. Feature table creation task steps (`feature-table-creation`)
-        1. Creates new churn_features feature table in the Feature Store
-    1. Model train task steps (`model-train`)
-        1. Train initial “baseline” classifier (RandomForestClassifier - `max_depth=4`) 
-            - **NOTE:** no changes to config need to be made at this point
-        1. Register the model. Model version 1 will be registered to stage=None upon successful model training.
-        1. **Manual Step**: MLflow Model Registry UI promotion to stage='Production'
-            - Go to MLflow Model Registry and manually promote model to stage=Production
+        1. Demo setup task steps ([`demo-setup`](https://github.com/niall-turbitt/e2e-mlops/blob/main/telco_churn/jobs/demo_setup_job.py))
+            1. Delete Model Registry model if exists (archive any existing models).
+            1. Delete MLflow experiment if exists.
+            1. Delete Feature Table if exists.
+        1. Feature table creation task steps (`feature-table-creation`)
+            1. Creates new churn_features feature table in the Feature Store
+        1. Model train task steps (`model-train`)
+            1. Train initial “baseline” classifier (RandomForestClassifier - `max_depth=4`) 
+                - **NOTE:** no changes to config need to be made at this point
+            1. Register the model. Model version 1 will be registered to `stage=None` upon successful model training.
+            1. **Manual Step**: MLflow Model Registry UI promotion to `stage='Production'`
+                - Go to MLflow Model Registry and manually promote model to `stage='Production'`.
 
 
 2. **Code change / model update (Continuous Integration)**
@@ -133,12 +154,12 @@ The following outlines the workflow to demo the e2e-mlops repo.
 5. **Run `model-deployment` job (Continuous Deployment)**
     - Manually trigger job via UI
         - In the Databricks workspace go to `Workflows` > `Jobs`, where the `model-deployment` job will be present.
-        - Click into model-train and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration. 
+        - Click into model-deployment and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration. 
     - Alternatively you can trigger the job using the Databricks CLI:
       - `databricks jobs run-now –job-id JOB_ID`
     
     - Model deployment job steps  (`model-deployment`)
-        1. Compare new “candidate model” in stage='Staging' versus current Production model in stage='Production'
+        1. Compare new “candidate model” in `stage='Staging'` versus current Production model in `stage='Production'`.
         1. Comparison criteria set through [`model_deployment.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_deployment.yml)
             1. Compute predictions using both models against a specified reference dataset
             1. If Staging model performs better than Production model, promote Staging model to Production and archive existing Production model
@@ -148,7 +169,7 @@ The following outlines the workflow to demo the e2e-mlops repo.
 6. **Run `model-inference-batch` job** 
     - Manually trigger job via UI
         - In the Databricks workspace go to `Workflows` > `Jobs`, where the `model-inference-batch` job will be present.
-        - Click into model-train and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration.
+        - Click into model-inference-batch and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration.
     - Alternatively you can trigger the job using the Databricks CLI:
       - `databricks jobs run-now –job-id JOB_ID`
 
@@ -159,9 +180,22 @@ The following outlines the workflow to demo the e2e-mlops repo.
         1. Apply loaded model to loaded features
         1. Write predictions to specified Delta path
 
-
-
-
+## Limitations
+- Pipelines cannot be run using dbx execute
+    - We rely on passing global variables via spark_env_vars for the respective cluster configs in the 
+      [`conf/deployment.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/deployment.yml) file.
+    - These variables cannot be passed to a cluster which is already running, i.e an interactive cluster. 
+      As such, the pipelines in the repo cannot be run using `dbx execute` and can currently only be executed using `dbx deploy; dbx launch`.
+    - For demo purposes, we recommend using a [Databricks pool](https://docs.databricks.com/clusters/instance-pools/index.html) 
+      from which instances can be acquired when launching a job to reduce cluster start up time.
+- Multitask jobs running against the same cluster
+    - The pipeline initial-model-train-register is a [multitask job](https://docs.databricks.com/data-engineering/jobs/index.html) 
+      which stitches together demo setup, feature store creation and model train pipelines. 
+    - At present, each of these tasks within the multitask job is executed on a different automated job cluster, 
+      rather than all tasks executed on the same cluster. As such, there will be time incurred for each task to acquire 
+      cluster resources and install dependencies.
+    - As above, we recommend using a pool from which instances can be acquired when jobs are launched to reduce cluster start up time.
+    
 ---
 ## Development
 
@@ -186,35 +220,11 @@ For local unit testing, please use `pytest`:
 pytest tests/unit --cov
 ```
 
-For an integration test on interactive cluster, use the following command:
-```
-dbx execute --cluster-name=<name of interactive cluster> --job=e2e-mlops-sample-integration-test
-```
-
 For a test on an automated job cluster, deploy the job files and then launch:
 ```
-dbx deploy --jobs=e2e-mlops-sample-integration-test --files-only
-dbx launch --job=e2e-mlops-sample-integration-test --as-run-submit --trace
+dbx deploy --jobs=sample-integration-test --files-only
+dbx launch --job=sample-integration-test --as-run-submit --trace
 ```
-
-### Interactive execution and development
-
-1. `dbx` expects that cluster for interactive execution supports `%pip` and `%conda` magic [commands](https://docs.databricks.com/libraries/notebooks-python-libraries.html).
-2. Please configure your job in `conf/deployment.yml` file.
-2. To execute the code interactively, provide either `--cluster-id` or `--cluster-name`.
-```bash
-dbx execute \
-    --cluster-name="<some-cluster-name>" \
-    --job=job-name
-```
-
-Multiple users also can use the same cluster for development. Libraries will be isolated per each execution context.
-
-### Preparing deployment file
-
-Next step would be to configure your deployment objects. To make this process easy and flexible, we're using YAML for configuration.
-
-By default, deployment configuration is stored in `conf/deployment.yml`.
 
 ### Deployment for Run Submit API
 
@@ -229,7 +239,7 @@ To launch the file-based deployment:
 dbx launch --as-run-submit --trace
 ```
 
-This type of deployment is handy for working in different branches, not to affect the main job definition.
+This type of deployment is convenient for working in different branches, not to affect the main job definition.
 
 ### Deployment for Run Now API
 
@@ -245,13 +255,6 @@ dbx launch --job=<job-name>
 ```
 
 This type of deployment shall be mainly used from the CI pipeline in automated way during new release.
-
-
-### CICD pipeline settings
-
-Please set the following secrets or environment variables for your CI provider:
-- `DATABRICKS_HOST`
-- `DATABRICKS_TOKEN`
 
 ### Testing and releasing via CI pipeline
 

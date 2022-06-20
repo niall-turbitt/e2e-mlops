@@ -1,5 +1,4 @@
 mlflow_params:
-  model_registry_name: 'e2e_mlops_telco_churn'
   model_registry_stage: 'production'
 
 data_input:
@@ -8,6 +7,4 @@ data_input:
   table_name: 'e2e_mlops_testing.churn_labels'
 
 data_output:
-  delta_path: 'dbfs:/tmp/e2e_mlops/churn_predictions.delta'
-  table_name: 'e2e_mlops_testing.churn_predictions'
   mode: 'overwrite'
