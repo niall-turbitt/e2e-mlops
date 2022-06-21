@@ -2,14 +2,14 @@ custom:
 
   # Global MLflow params for each environment
   mlflow-params-dev: &mlflow-params-dev
-    model_train_experiment_path: '/Users/joseph@databricks.com/e2e_mlops/e2e_mlops_dev'
-    model_name: 'joseph_e2e_mlops_telco_churn_dev'
-    model_deploy_experiment_path: '/Users/joseph@databricks.com/e2e_mlops/e2e_mlops_deployment_dev'
+    model_train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_dev'
+    model_name: 'e2e_mlops_telco_churn_dev'
+    model_deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment_dev'
 
   mlflow-params-prod: &mlflow-params-prod
-    model_train_experiment_path: '/Users/joseph@databricks.com/e2e_mlops/e2e_mlops_prod'
-    model_name: 'joseph_e2e_mlops_telco_churn_prod'
-    model_deploy_experiment_path: '/Users/joseph@databricks.com/e2e_mlops/e2e_mlops_deployment_prod'
+    model_train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_prod'
+    model_name: 'e2e_mlops_telco_churn_prod'
+    model_deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment_prod'
 
   # Global data params for each environment
   data-params-base: &data-params-base
@@ -70,7 +70,6 @@ custom:
     num_workers: 1
     driver_instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
     instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
-    requirements: file://mlr-11.0-integration-requirements.txt
 
   dev-cluster-config: &dev-cluster-config
     new_cluster:
