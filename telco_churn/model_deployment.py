@@ -17,7 +17,7 @@ class ModelDeployment:
     """
     Class to execute model deployment. This class orchestrates the comparison of the current Production model versus
     Staging model. The Production model will be the most recent model version under registered in the MLflow Model
-    Registry under the provided model_registry_name, for stage="Production". Likewise for Staging.
+    Registry under the provided model_name, for stage="Production". Likewise for Staging.
 
     Execution will involve loading the models and performing batch inference for a specified reference dataset.
     The two models will be compared using the specified comparison_metric.
@@ -30,7 +30,7 @@ class ModelDeployment:
     experiment_path.
 
     Attributes:
-        model_registry_name (str): Name of model to load in MLflow Model Registry
+        model_name (str): Name of model to load in MLflow Model Registry
         reference_data (str): Name of table to use as a reference DataFrame to score loaded model on
             Must contain column(s) for lookup keys to join feature data from Feature Store
         label_col (str): Name of label column in input data
@@ -62,7 +62,7 @@ class ModelDeployment:
             raise RuntimeError('MLflow experiment_id or experiment_path must be set in mlflow_params')
 
     def _get_model_uri_by_stage(self, stage: str):
-        return f'models:/{self.mlflow_params["model_registry_name"]}/{stage}'
+        return f'models:/{self.mlflow_params["model_name"]}/{stage}'
 
     def _batch_inference_by_stage(self, stage: str) -> pyspark.sql.dataframe.DataFrame:
         """
@@ -131,8 +131,8 @@ class ModelDeployment:
             Evaluation metric computed using Production model
         """
         client = MlflowClient()
-        model_registry_name = self.mlflow_params['model_registry_name']
-        staging_model_version = client.get_latest_versions(name=model_registry_name, stages=['staging'])[0]
+        model_name = self.mlflow_params['model_name']
+        staging_model_version = client.get_latest_versions(name=model_name, stages=['staging'])[0]
 
         _logger.info(f'metric={self.comparison_metric}')
         _logger.info(f'higher_is_better={self.higher_is_better}')
@@ -140,7 +140,7 @@ class ModelDeployment:
             if staging_eval_metric <= production_eval_metric:
                 _logger.info('Candidate Staging model DOES NOT perform better than current Production model')
                 _logger.info('Transition candidate model from stage="staging" to stage="archived"')
-                client.transition_model_version_stage(name=model_registry_name,
+                client.transition_model_version_stage(name=model_name,
                                                       version=staging_model_version.version,
                                                       stage="archived")
 
@@ -148,7 +148,7 @@ class ModelDeployment:
                 _logger.info('Candidate Staging model DOES perform better than current Production model')
                 _logger.info('Transition candidate model from stage="staging" to stage="production"')
                 _logger.info('Existing Production model will be archived')
-                client.transition_model_version_stage(name=model_registry_name,
+                client.transition_model_version_stage(name=model_name,
                                                       version=staging_model_version.version,
                                                       stage="production",
                                                       archive_existing_versions=True)
@@ -157,7 +157,7 @@ class ModelDeployment:
             if staging_eval_metric >= production_eval_metric:
                 _logger.info('Candidate Staging model DOES NOT perform better than current Production model')
                 _logger.info('Transition candidate model from stage="staging" to stage="archived"')
-                client.transition_model_version_stage(name=model_registry_name,
+                client.transition_model_version_stage(name=model_name,
                                                       version=staging_model_version.version,
                                                       stage="archived")
 
@@ -165,7 +165,7 @@ class ModelDeployment:
                 _logger.info('Candidate Staging model DOES perform better than current Production model')
                 _logger.info('Transition candidate model from stage="staging" to stage="production"')
                 _logger.info('Existing Production model will be archived')
-                client.transition_model_version_stage(name=model_registry_name,
+                client.transition_model_version_stage(name=model_name,
                                                       version=staging_model_version.version,
                                                       stage="production",
                                                       archive_existing_versions=True)

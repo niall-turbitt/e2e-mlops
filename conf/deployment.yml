@@ -2,67 +2,64 @@ custom:
 
   # Global MLflow params for each environment
   mlflow-params-dev: &mlflow-params-dev
-    model_train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_dev'
-    model_registry_name: 'e2e_mlops_telco_churn_dev'
-    model_deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment_dev'
+    model_train_experiment_path: '/Users/joseph@databricks.com/e2e_mlops/e2e_mlops_dev'
+    model_name: 'joseph_e2e_mlops_telco_churn_dev'
+    model_deploy_experiment_path: '/Users/joseph@databricks.com/e2e_mlops/e2e_mlops_deployment_dev'
 
   mlflow-params-prod: &mlflow-params-prod
-    model_train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_prod'
-    model_registry_name: 'e2e_mlops_telco_churn_prod'
-    model_deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment_prod'
+    model_train_experiment_path: '/Users/joseph@databricks.com/e2e_mlops/e2e_mlops_prod'
+    model_name: 'joseph_e2e_mlops_telco_churn_prod'
+    model_deploy_experiment_path: '/Users/joseph@databricks.com/e2e_mlops/e2e_mlops_deployment_prod'
 
   # Global data params for each environment
-  data-params-dev: &data-params-dev
+  data-params-base: &data-params-base
     # Feature Store params
-    feature_store_database_name: 'e2e_mlops_dev'
     feature_store_table_name: 'churn_features'
     feature_store_table_primary_keys: 'customerID'
-    feature_store_table_description: 'These features are derived from the field_demos_retail.bronze_customers table in the lakehouse.  We created dummy variables for the categorical columns, cleaned up their names, and added a boolean flag for whether the customer churned or not.  No aggregations were performed.'
+    feature_store_table_description: 'These features are derived from the ibm_telco_churn.bronze_customers table in the lakehouse.  We created dummy variables for the categorical columns, cleaned up their names, and added a boolean flag for whether the customer churned or not.  No aggregations were performed.'
     # Labels table params
-    labels_table_database_name: 'e2e_mlops_dev'
     labels_table_name: 'churn_labels'
     labels_table_label_col: 'churn'
-    labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_labels.delta'
     # Batch inference input table params
     # For demo purposes we use the churn_labels table
-    inference_database_name: 'e2e_mlops_dev'
     inference_table_name: 'churn_labels'
+    # Batch inference predictions table params
+    predictions_table_name: 'churn_predictions'
+    # Reference table params - table to use for comparing staging vs production models
+    # For demo purposes we use the churn_labels table. However this reference table in practice would be a curated dataset
+    # Note: this table must contain column(s) for lookup keys to join feature data from Feature Store
+    reference_table_name: 'churn_labels'
+    reference_table_label_col: 'churn'
+
+  data-params-dev: &data-params-dev
+    <<: *data-params-base
+    # Feature Store params
+    feature_store_database_name: 'e2e_mlops_dev'
+    # Labels table params
+    labels_table_database_name: 'e2e_mlops_dev'
+    labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_labels.delta'
+    # Batch inference input table params
+    inference_database_name: 'e2e_mlops_dev'
     # Batch inference predictions table params
     predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_predictions.delta'
     predictions_table_database_name: 'e2e_mlops_dev'
-    predictions_table_name: 'churn_predictions'
     # Reference table params - table to use for comparing staging vs production models
-    # For demo purposes we use the churn_labels table. However this reference table in practice would be a curated dataset
-    # Note: this table must contain column(s) for lookup keys to join feature data from Feature Store
     reference_table_database_name: 'e2e_mlops_dev'
-    reference_table_name: 'churn_labels'
-    reference_table_label_col: 'churn'
 
   data-params-prod: &data-params-prod
+    <<: *data-params-base
     # Feature Store params
     feature_store_database_name: 'e2e_mlops_prod'
-    feature_store_table_name: 'churn_features'
-    feature_store_table_primary_keys: 'customerID'
-    feature_store_table_description: 'These features are derived from the field_demos_retail.bronze_customers table in the lakehouse.  We created dummy variables for the categorical columns, cleaned up their names, and added a boolean flag for whether the customer churned or not.  No aggregations were performed.'
     # Labels table params
     labels_table_database_name: 'e2e_mlops_prod'
-    labels_table_name: 'churn_labels'
-    labels_table_label_col: 'churn'
     labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_labels.delta'
     # Batch inference input table params
-    # For demo purposes we use the churn_labels table
     inference_database_name: 'e2e_mlops_prod'
-    inference_table_name: 'churn_labels'
     # Batch inference predictions table params
     predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_predictions.delta'
     predictions_table_database_name: 'e2e_mlops_prod'
-    predictions_table_name: 'churn_predictions'
     # Reference table params - table to use for comparing staging vs production models
-    # For demo purposes we use the churn_labels table. However this reference table in practice would be a curated dataset
-    # Note: this table must contain column(s) for lookup keys to join feature data from Feature Store
     reference_table_database_name: 'e2e_mlops_prod'
-    reference_table_name: 'churn_labels'
-    reference_table_label_col: 'churn'
 
   # Cluster configs for each environment
   # For demo purposes we will use a warm pool to acquire instances from

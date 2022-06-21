@@ -13,7 +13,7 @@ class ModelDeploymentJob(Job):
     @staticmethod
     def _get_mlflow_params():
         return {'experiment_path': os.getenv('model_deploy_experiment_path'),
-                'model_registry_name': os.getenv('model_registry_name')}
+                'model_name': os.getenv('model_name')}
 
     @staticmethod
     def _get_reference_data() -> str:
