@@ -11,9 +11,9 @@ _logger = get_logger()
 class ModelInferenceJob(Job):
 
     def _get_model_uri(self) -> str:
-        model_registry_name = os.getenv('model_registry_name')
+        model_name = os.getenv('model_name')
         model_registry_stage = self.conf['mlflow_params']['model_registry_stage']
-        model_uri = f'models:/{model_registry_name}/{model_registry_stage}'
+        model_uri = f'models:/{model_name}/{model_registry_stage}'
 
         return model_uri
 
