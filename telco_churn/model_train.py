@@ -33,7 +33,7 @@ class ModelTrain:
                  - experiment_path: Case sensitive name of the experiment to be activated. If an experiment with this
                      name does not exist, a new experiment wth this name is created.
                 - run_name: Name of MLflow run
-                - model_registry_name: Name of the registered model under which to create a new model version.
+                - model_name: Name of the registered model under which to create a new model version.
                       If a registered model with the given name does not exist, it will be created automatically.
         data_input (dict): Dictionary of feature_store_params, labels_table_params. Each of which are themselves dicts.
             feature_store_params:
@@ -178,7 +178,7 @@ class ModelTrain:
             5. Define sklearn pipeline using ModelTrainPipeline, and fit on train data
             6. Log trained model using the Databricks Feature Store API. Model will be logged to MLflow with associated
                feature table metadata.
-            7. Register the model to MLflow model registry if model_registry_name is provided in mlflow_params
+            7. Register the model to MLflow model registry if model_name is provided in mlflow_params
         """
         _logger.info('==========Running model training==========')
 
@@ -224,10 +224,10 @@ class ModelTrain:
             print(pd.DataFrame(test_metrics, index=[0]))
 
             # Register model to MLflow Model Registry if provided
-            if self.mlflow_params['model_registry_name']:
+            if self.mlflow_params['model_name']:
                 _logger.info('==========MLflow Model Registry==========')
-                _logger.info(f'Registering model: {self.mlflow_params["model_registry_name"]}')
+                _logger.info(f'Registering model: {self.mlflow_params["model_name"]}')
                 mlflow.register_model(f'runs:/{mlflow_run.info.run_id}/fs_model',
-                                      name=self.mlflow_params['model_registry_name'])
+                                      name=self.mlflow_params['model_name'])
 
         _logger.info('==========Model training completed==========')

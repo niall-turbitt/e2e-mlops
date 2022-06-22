@@ -17,44 +17,44 @@ _logger = get_logger()
 class DemoSetup(Job):
 
     @staticmethod
-    def _check_mlflow_model_registry_exists(model_registry_name) -> bool:
+    def _check_mlflow_model_registry_exists(model_name) -> bool:
         """
         Check if model exists in MLflow Model Registry.
         Returns True if model exists in Model Registry, False if not
         """
         try:
-            client.get_registered_model(name=model_registry_name)
-            _logger.info(f'MLflow Model Registry name: {model_registry_name} exists')
+            client.get_registered_model(name=model_name)
+            _logger.info(f'MLflow Model Registry name: {model_name} exists')
             return True
         except RestException:
-            _logger.info(f'MLflow Model Registry name: {model_registry_name} DOES NOT exists')
+            _logger.info(f'MLflow Model Registry name: {model_name} DOES NOT exists')
             return False
 
     @staticmethod
-    def _archive_registered_models(model_registry_name):
+    def _archive_registered_models(model_name):
         """
         Archive any model versions which are not already under stage='Archived
         """
-        registered_model = client.get_registered_model(name=model_registry_name)
+        registered_model = client.get_registered_model(name=model_name)
         latest_versions_list = registered_model.latest_versions
 
-        _logger.info(f'MLflow Model Registry name: {model_registry_name}')
+        _logger.info(f'MLflow Model Registry name: {model_name}')
         for model_version in latest_versions_list:
             if model_version.current_stage != 'Archived':
                 _logger.info(f'Archiving model version: {model_version.version}')
                 client.transition_model_version_stage(
-                    name=model_registry_name,
+                    name=model_name,
                     version=model_version.version,
                     stage='Archived'
                 )
 
-    def _delete_registered_model(self, model_registry_name):
+    def _delete_registered_model(self, model_name):
         """
         Delete an experiment from the backend store.
         """
-        self._archive_registered_models(model_registry_name)
-        client.delete_registered_model(name=model_registry_name)
-        _logger.info(f'Deleted MLflow Model Registry model: {model_registry_name}')
+        self._archive_registered_models(model_name)
+        client.delete_registered_model(name=model_name)
+        _logger.info(f'Deleted MLflow Model Registry model: {model_name}')
 
     @staticmethod
     def _check_mlflow_experiments_exists() -> dict:
@@ -213,9 +213,9 @@ class DemoSetup(Job):
 
         if self.conf['delete_model_registry']:
             _logger.info('Checking MLflow Model Registry...')
-            model_registry_name = os.getenv('model_registry_name')
-            if self._check_mlflow_model_registry_exists(model_registry_name):
-                self._delete_registered_model(model_registry_name)
+            model_name = os.getenv('model_name')
+            if self._check_mlflow_model_registry_exists(model_name):
+                self._delete_registered_model(model_name)
 
         if self.conf['delete_mlflow_experiments']:
             _logger.info('Checking MLflow Tracking...')
