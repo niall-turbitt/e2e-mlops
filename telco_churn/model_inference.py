@@ -99,7 +99,6 @@ class ModelInference:
         mode : str
             Specify behavior when predictions data already exists.
             Options include:
-
                 * 'append': Append contents of this :class:`DataFrame` to existing data.
                 * 'overwrite': Overwrite existing data.
         """
