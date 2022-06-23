@@ -111,9 +111,13 @@ class Featurizer:
             
         Parameters
         ----------
-        df : 
+        df : pyspark.sql.DataFrame
+            Input PySpark DataFrame to preprocess
+
         Returns
         -------
+        pyspark.sql.DataFrame
+            Preprocessed dataset of features and label column
         """
         _logger.info('Running Data Preprocessing steps...')
 
