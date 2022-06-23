@@ -58,30 +58,30 @@ class FeatureTableCreator:
         spark.sql(f'USE {database_name};')
         spark.sql(f'DROP TABLE IF EXISTS {table_name};')
 
-    def run_data_ingest(self) -> pyspark.sql.dataframe.DataFrame:
+    def run_data_ingest(self) -> pyspark.sql.DataFrame:
         """
         Run data ingest step
 
         Returns
         -------
-        pyspark.sql.dataframe.DataFrame
+        pyspark.sql.DataFrame
             Input Spark DataFrame
         """
         return spark.table(self.data_ingest_params['input_table'])
 
-    def run_data_prep(self, input_df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
+    def run_data_prep(self, input_df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
         """
         Run data preparation step, using Featurizer to run featurization logic to create features from the input
         DataFrame.
 
         Parameters
         ----------
-        input_df : pyspark.sql.dataframe.DataFrame
+        input_df : pyspark.sql.DataFrame
             Input Spark DataFrame
 
         Returns
         -------
-        pyspark.sql.dataframe.DataFrame
+        pyspark.sql.DataFrame
             Processed Spark DataFrame containing features
         """
         featurizer = featurize.Featurizer(**self.data_prep_params)
@@ -89,7 +89,8 @@ class FeatureTableCreator:
 
         return proc_df
 
-    def run_feature_table_create(self, df: pyspark.sql.dataframe.DataFrame,
+    def run_feature_table_create(self, 
+                                 df: pyspark.sql.DataFrame,
                                  database_name: str, table_name: str) -> None:
         """
         Method to create feature table in Databricks Feature Store. When run, this method will create from scratch the
@@ -103,7 +104,7 @@ class FeatureTableCreator:
 
         Parameters
         ----------
-        df : pyspark.sql.dataframe.DataFrame
+        df : pyspark.sql.DataFrame
             Spark DataFrame from which to create the feature table.
         database_name :  str
             Name of database to use for creating the feature table
@@ -123,7 +124,7 @@ class FeatureTableCreator:
                                                            primary_keys=self.feature_store_params['primary_keys'],
                                                            description=self.feature_store_params['description'])
 
-    def run_labels_table_create(self, df: pyspark.sql.dataframe.DataFrame) -> None:
+    def run_labels_table_create(self, df: pyspark.sql.DataFrame) -> None:
         """
         Method to create labels table. This table will consist of the columns primary_key, label_col
 
@@ -132,7 +133,7 @@ class FeatureTableCreator:
 
         Parameters
         ----------
-        df : pyspark.sql.dataframe.DataFrame
+        df : pyspark.sql.DataFrame
             Spark DataFrame containing primary keys column and label column
         """
         if isinstance(self.feature_store_params['primary_keys'], str):

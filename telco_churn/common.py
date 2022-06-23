@@ -33,11 +33,11 @@ class Job(ABC):
         try:
             from pyspark.dbutils import DBUtils  # noqa
 
-            if "dbutils" not in locals():
+            if 'dbutils' not in locals():
                 utils = DBUtils(spark)
                 return utils
             else:
-                return locals().get("dbutils")
+                return locals().get('dbutils')
         except ImportError:
             return None
 
@@ -45,29 +45,29 @@ class Job(ABC):
         utils = self._get_dbutils(self.spark)
 
         if not utils:
-            self.logger.warn("No DBUtils defined in the runtime")
+            self.logger.warn('No DBUtils defined in the runtime')
         else:
-            self.logger.info("DBUtils class initialized")
+            self.logger.info('DBUtils class initialized')
 
         return utils
 
     def _provide_config(self):
-        self.logger.info("Reading configuration from --conf-file job option")
+        self.logger.info('Reading configuration from --conf-file job option')
         conf_file = self._get_conf_file()
         if not conf_file:
             self.logger.info(
-                "No conf file was provided, setting configuration to empty dict."
-                "Please override configuration in subclass init method"
+                'No conf file was provided, setting configuration to empty dict.'
+                'Please override configuration in subclass init method'
             )
             return {}
         else:
-            self.logger.info(f"Conf file was provided, reading configuration from {conf_file}")
+            self.logger.info(f'Conf file was provided, reading configuration from {conf_file}')
             return self._read_config(conf_file)
 
     @staticmethod
     def _get_conf_file():
         p = ArgumentParser()
-        p.add_argument("--conf-file", required=False, type=str)
+        p.add_argument('--conf-file', required=False, type=str)
         namespace = p.parse_known_args(sys.argv[1:])[0]
         return namespace.conf_file
 
@@ -82,9 +82,9 @@ class Job(ABC):
 
     def _log_conf(self):
         # log parameters
-        self.logger.info("Launching job with configuration parameters:")
+        self.logger.info('Launching job with configuration parameters:')
         for key, item in self.conf.items():
-            self.logger.info("\t Parameter: %-30s with value => %-30s" % (key, item))
+            self.logger.info('\t Parameter: %-30s with value => %-30s' % (key, item))
 
     @abstractmethod
     def launch(self):

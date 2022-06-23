@@ -64,7 +64,7 @@ class ModelDeployment:
     def _get_model_uri_by_stage(self, stage: str):
         return f'models:/{self.mlflow_params["model_name"]}/{stage}'
 
-    def _batch_inference_by_stage(self, stage: str) -> pyspark.sql.dataframe.DataFrame:
+    def _batch_inference_by_stage(self, stage: str) -> pyspark.sql.DataFrame:
         """
         Load and compute batch inference using model loaded from an MLflow Model Registry stage.
         Inference is computed on reference data specified. The model will use this reference data to look up feature

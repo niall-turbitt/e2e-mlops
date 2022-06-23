@@ -39,6 +39,6 @@ class ModelDeploymentJob(Job):
         _logger.info('Launching ModelDeploymentJob job finished!')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     job = ModelDeploymentJob()
     job.launch()

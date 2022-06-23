@@ -22,19 +22,19 @@ class ModelInference:
     model_uri: str
     inference_data: str = None
 
-    def _load_inference_df(self) -> pyspark.sql.dataframe.DataFrame:
+    def _load_inference_df(self) -> pyspark.sql.DataFrame:
         """
         Load Spark DataFrame containing lookup keys to join feature data from Feature Store
 
         Returns
         -------
-        pyspark.sql.dataframe.DataFrame
+        pyspark.sql.DataFrame
         """
         inference_table_name = self.inference_data
         _logger.info(f'Loading lookup keys from table: {inference_table_name}')
         return spark.table(inference_table_name)
 
-    def fs_score_batch(self, df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
+    def fs_score_batch(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
         """
         Load and apply model from MLflow Model Registry using Feature Store API. Features will be automatically
         retrieved from the Feature Store. This method requires that the registered model must have been logged
@@ -43,7 +43,7 @@ class ModelInference:
 
         Parameters
         ----------
-        df : pyspark.sql.dataframe.DataFrame
+        df : pyspark.sql.DataFrame
 
             The DataFrame to score the model on. Feature Store features will be joined with df prior to scoring the
             model. df must:
@@ -57,7 +57,7 @@ class ModelInference:
 
         Returns
         -------
-        pyspark.sql.dataframe.DataFrame:
+        pyspark.sql.DataFrame:
             A Spark DataFrame containing:
                 1. All columns of df.
                 2. All feature values retrieved from Feature Store.
@@ -68,14 +68,14 @@ class ModelInference:
 
         return fs.score_batch(self.model_uri, df)
 
-    def run_batch(self) -> pyspark.sql.dataframe.DataFrame:
+    def run_batch(self) -> pyspark.sql.DataFrame:
         """
         Load inference lookup keys, feature data from Feature Store, and score using the loaded model from MLflow
         model registry
 
         Returns
         -------
-        pyspark.sql.dataframe.DataFrame:
+        pyspark.sql.DataFrame:
             A Spark DataFrame containing:
                 1. All columns of inference df.
                 2. All feature values retrieved from Feature Store.

@@ -44,6 +44,6 @@ class ModelTrainJob(Job):
         _logger.info('ModelTrainJob job finished!')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     job = ModelTrainJob()
     job.launch()

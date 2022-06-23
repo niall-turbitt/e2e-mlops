@@ -26,10 +26,10 @@ class ModelEvaluation:
         """
         return roc_auc_score(y_true=y_true,
                              y_score=y_score,
-                             average="weighted",
-                             multi_class="ovo")
+                             average='weighted',
+                             multi_class='ovo')
 
-    def evaluate(self, y_true: pd.Series, y_score: pd.Series, metric_prefix: str = "") -> Dict:
+    def evaluate(self, y_true: pd.Series, y_score: pd.Series, metric_prefix: str = '') -> Dict:
         """
 
 
@@ -47,5 +47,5 @@ class ModelEvaluation:
         Dictionary of (metric name, computed value)
         """
         return {
-            f"{metric_prefix}roc_auc_score": self._roc_auc_score(y_true, y_score),
+            f'{metric_prefix}roc_auc_score': self._roc_auc_score(y_true, y_score),
         }

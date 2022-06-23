@@ -6,7 +6,7 @@ import databricks
 from databricks.feature_store import FeatureStoreClient
 
 
-def create_and_write_feature_table(df: pyspark.sql.dataframe.DataFrame,
+def create_and_write_feature_table(df: pyspark.sql.DataFrame,
                                    feature_table_name: str,
                                    primary_keys: Union[str, List[str]],
                                    description: str) -> databricks.feature_store.entities.feature_table.FeatureTable:
@@ -16,7 +16,7 @@ def create_and_write_feature_table(df: pyspark.sql.dataframe.DataFrame,
 
     Parameters
     ----------
-    df : pyspark.sql.dataframe.DataFrame
+    df : pyspark.sql.DataFrame
         Data to create this feature table
     feature_table_name : str
         A feature table name of the form <database_name>.<table_name>, for example dev.user_features.
