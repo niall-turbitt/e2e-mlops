@@ -56,8 +56,7 @@ class DemoSetup(Workload):
         client.delete_registered_model(name=model_name)
         _logger.info(f'Deleted MLflow Model Registry model: {model_name}')
 
-    @staticmethod
-    def _check_mlflow_experiments_exists() -> dict:
+    def _check_mlflow_experiments_exists(self) -> dict:
         """
         The demo workflow consists of creating 2 MLflow Tracking experiments:
             * train_experiment - Experiment used to track params, metrics, artifacts during model training
@@ -72,10 +71,10 @@ class DemoSetup(Workload):
         -------
         Dictionary indicating whether train and deploy MLflow experiments currently exist
         """
-        train_experiment_id = os.getenv('model_train_experiment_id')    # will be None if not passed
-        train_experiment_path = os.getenv('model_train_experiment_path')
-        deploy_experiment_id = os.getenv('model_deploy_experiment_id')
-        deploy_experiment_path = os.getenv('model_deploy_experiment_path')
+        train_experiment_id = self.env_vars['model_train_experiment_id']    # will be None if not passed
+        train_experiment_path = self.env_vars['model_train_experiment_path']
+        deploy_experiment_id = self.env_vars['model_deploy_experiment_id']
+        deploy_experiment_path = self.env_vars['model_deploy_experiment_path']
 
         def check_by_experiment_id(experiment_id):
             try:
@@ -114,8 +113,7 @@ class DemoSetup(Workload):
         return {'train_exp_exists': train_exp_exists,
                 'deploy_exp_exists': deploy_exp_exists}
 
-    @staticmethod
-    def _delete_mlflow_experiments(exp_exists_dict: dict):
+    def _delete_mlflow_experiments(self, exp_exists_dict: dict):
         """
         Check exp_exists_dict if train_exp_exists or deploy_exp_exists is True. Delete experiments if they exist
 
@@ -128,26 +126,26 @@ class DemoSetup(Workload):
         if len(delete_experiments) == 0:
             _logger.info(f'No existing experiments to delete')
         if 'train_exp_exists' in delete_experiments:
-            if os.getenv('model_train_experiment_path') is not None:
-                experiment = mlflow.get_experiment_by_name(name=os.getenv('model_train_experiment_path'))
+            if self.env_vars['model_train_experiment_path'] is not None:
+                experiment = mlflow.get_experiment_by_name(name=self.env_vars['model_train_experiment_path'])
                 mlflow.delete_experiment(experiment_id=experiment.experiment_id)
-                _logger.info(f'Deleted existing experiment_path: {os.getenv("model_train_experiment_path")}')
-            elif os.getenv('model_train_experiment_id') is not None:
-                mlflow.delete_experiment(experiment_id=os.getenv('model_train_experiment_id'))
-                _logger.info(f'Deleted existing experiment_id: {os.getenv("model_train_experiment_id")}')
+                _logger.info(f'Deleted existing experiment_path: {self.env_vars["model_train_experiment_path"]}')
+            elif self.env_vars['model_train_experiment_id'] is not None:
+                mlflow.delete_experiment(experiment_id=self.env_vars['model_train_experiment_id'])
+                _logger.info(f'Deleted existing experiment_id: {self.env_vars["model_train_experiment_id"]}')
             else:
                 raise RuntimeError('Either model_train_experiment_id or model_train_experiment_path should be passed '
                                    'in deployment.yml')
 
         if 'deploy_exp_exists' in delete_experiments:
-            if os.getenv('model_deploy_experiment_path') is not None:
-                experiment = mlflow.get_experiment_by_name(name=os.getenv('model_deploy_experiment_path'))
+            if self.env_vars['model_deploy_experiment_path'] is not None:
+                experiment = mlflow.get_experiment_by_name(name=self.env_vars['model_deploy_experiment_path'])
                 mlflow.delete_experiment(experiment_id=experiment.experiment_id)
                 _logger.info(
-                    f'Deleted existing experiment_path: {os.getenv("model_deploy_experiment_path")}')
-            elif os.getenv('model_deploy_experiment_id') is not None:
-                mlflow.delete_experiment(experiment_id=os.getenv('model_deploy_experiment_id'))
-                _logger.info(f'Deleted existing experiment_id: {os.getenv("model_deploy_experiment_id")}')
+                    f'Deleted existing experiment_path: {self.env_vars["model_deploy_experiment_path"]}')
+            elif self.env_vars['model_deploy_experiment_id'] is not None:
+                mlflow.delete_experiment(experiment_id=self.env_vars['model_deploy_experiment_id'])
+                _logger.info(f'Deleted existing experiment_id: {self.env_vars["model_deploy_experiment_id"]}')
 
     @staticmethod
     def _check_feature_table_exists(feature_store_table) -> bool:
@@ -209,11 +207,11 @@ class DemoSetup(Workload):
         * Delete Feature Table if exists
         """
         _logger.info('==========Demo Setup=========')
-        _logger.info(f'Running demo-setup pipeline in {os.getenv("DEPLOYMENT_ENV")} environment')
+        _logger.info(f'Running demo-setup pipeline in {self.env_vars["DEPLOYMENT_ENV"]} environment')
 
         if self.conf['delete_model_registry']:
             _logger.info('Checking MLflow Model Registry...')
-            model_name = os.getenv('model_name')
+            model_name = self.env_vars['model_name']
             if self._check_mlflow_model_registry_exists(model_name):
                 self._delete_registered_model(model_name)
 
@@ -224,15 +222,15 @@ class DemoSetup(Workload):
 
         if self.conf['drop_feature_table']:
             _logger.info('Checking Feature Store...')
-            feature_store_database_name = os.getenv('feature_store_database_name')
-            feature_store_table_name = os.getenv('feature_store_table_name')
+            feature_store_database_name = self.env_vars['feature_store_database_name']
+            feature_store_table_name = self.env_vars['feature_store_table_name']
             feature_store_table = f'{feature_store_database_name}.{feature_store_table_name}'
             if self._check_feature_table_exists(feature_store_table=feature_store_table):
                 self._drop_feature_table(feature_store_table=feature_store_table)
 
         if self.conf['drop_labels_table']:
             _logger.info('Checking existing labels table...')
-            labels_table_dbfs_path = os.getenv('labels_table_dbfs_path')
+            labels_table_dbfs_path = self.env_vars['labels_table_dbfs_path']
             if self._check_labels_delta_table_exists(labels_table_dbfs_path=labels_table_dbfs_path):
                 self._delete_labels_delta_table(labels_table_dbfs_path=labels_table_dbfs_path)
 
