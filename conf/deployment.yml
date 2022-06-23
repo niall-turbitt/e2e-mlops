@@ -2,14 +2,14 @@ custom:
 
   # Global MLflow params for each environment
   mlflow-params-dev: &mlflow-params-dev
-    model_train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_dev'
+    model_train_experiment_path: '/Shared/e2e_mlops/telco_churn_experiment_dev'
     model_name: 'e2e_mlops_telco_churn_dev'
-    model_deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment_dev'
+    model_deploy_experiment_path: '/Shared/e2e_mlops/telco_churn_deployment_dev'
 
   mlflow-params-prod: &mlflow-params-prod
-    model_train_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_prod'
+    model_train_experiment_path: '/Shared/e2e_mlops/telco_churn_experiment_prod'
     model_name: 'e2e_mlops_telco_churn_prod'
-    model_deploy_experiment_path: '/Users/niall.turbitt@databricks.com/e2e_mlops_deployment_prod'
+    model_deploy_experiment_path: '/Shared/e2e_mlops/telco_churn_deployment_prod'
 
   # Global data params for each environment
   data-params-base: &data-params-base
@@ -37,11 +37,11 @@ custom:
     feature_store_database_name: 'e2e_mlops_dev'
     # Labels table params
     labels_table_database_name: 'e2e_mlops_dev'
-    labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_labels.delta'
+    labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_labels.delta'  # tmp directory for demo purposes
     # Batch inference input table params
     inference_database_name: 'e2e_mlops_dev'
     # Batch inference predictions table params
-    predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_predictions.delta'
+    predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_predictions.delta'  # tmp directory for demo purposes
     predictions_table_database_name: 'e2e_mlops_dev'
     # Reference table params - table to use for comparing staging vs production models
     reference_table_database_name: 'e2e_mlops_dev'
@@ -52,11 +52,11 @@ custom:
     feature_store_database_name: 'e2e_mlops_prod'
     # Labels table params
     labels_table_database_name: 'e2e_mlops_prod'
-    labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_labels.delta'
+    labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_labels.delta' # tmp directory for demo purposes
     # Batch inference input table params
     inference_database_name: 'e2e_mlops_prod'
     # Batch inference predictions table params
-    predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_predictions.delta'
+    predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_predictions.delta' # tmp directory for demo purposes
     predictions_table_database_name: 'e2e_mlops_prod'
     # Reference table params - table to use for comparing staging vs production models
     reference_table_database_name: 'e2e_mlops_prod'
