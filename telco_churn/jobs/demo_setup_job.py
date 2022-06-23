@@ -33,7 +33,7 @@ class DemoSetup(Job):
     @staticmethod
     def _archive_registered_models(model_name):
         """
-        Archive any model versions which are not already under stage='Archived
+        Archive any model versions which are not already under stage='Archived'
         """
         registered_model = client.get_registered_model(name=model_name)
         latest_versions_list = registered_model.latest_versions
@@ -247,6 +247,6 @@ class DemoSetup(Job):
         _logger.info('DemoSetup job finished!')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     job = DemoSetup()
     job.launch()

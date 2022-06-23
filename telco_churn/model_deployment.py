@@ -30,17 +30,15 @@ class ModelDeployment:
     experiment_path.
 
     Attributes:
-        model_name (str): Name of model to load in MLflow Model Registry
-        reference_data (str): Name of table to use as a reference DataFrame to score loaded model on
+        mlflow_params (dict): Dictionary of MLflow params. Must contain the keys experiment_path and model_name.
+            experiment_path refers to the path to the MLflow experiment to track metrics from model comparison.
+            model_name refers to the name of the model in the MLflow Model Registry.
+        reference_data (str): Name of table to use as a reference DataFrame to score loaded model against.
             Must contain column(s) for lookup keys to join feature data from Feature Store
         label_col (str): Name of label column in input data
         comparison_metric (str): Name of evaluation metric to use when comparing models
         higher_is_better (bool): Boolean indicating whether a higher value for the evaluation metric equates to better
             model performance
-        experiment_id (int): ID of the MLflow experiment to be activated. If an experiment with this ID does not exist,
-            an exception is thrown.
-        experiment_path (str): Case sensitive name of the experiment to be activated. If an experiment with this name
-            does not exist, a new experiment wth this name is created.
     """
     mlflow_params: dict
     reference_data: str
@@ -64,7 +62,7 @@ class ModelDeployment:
     def _get_model_uri_by_stage(self, stage: str):
         return f'models:/{self.mlflow_params["model_name"]}/{stage}'
 
-    def _batch_inference_by_stage(self, stage: str) -> pyspark.sql.dataframe.DataFrame:
+    def _batch_inference_by_stage(self, stage: str) -> pyspark.sql.DataFrame:
         """
         Load and compute batch inference using model loaded from an MLflow Model Registry stage.
         Inference is computed on reference data specified. The model will use this reference data to look up feature
@@ -142,7 +140,7 @@ class ModelDeployment:
                 _logger.info('Transition candidate model from stage="staging" to stage="archived"')
                 client.transition_model_version_stage(name=model_name,
                                                       version=staging_model_version.version,
-                                                      stage="archived")
+                                                      stage='archived')
 
             elif staging_eval_metric > production_eval_metric:
                 _logger.info('Candidate Staging model DOES perform better than current Production model')
@@ -150,7 +148,7 @@ class ModelDeployment:
                 _logger.info('Existing Production model will be archived')
                 client.transition_model_version_stage(name=model_name,
                                                       version=staging_model_version.version,
-                                                      stage="production",
+                                                      stage='production',
                                                       archive_existing_versions=True)
 
         else:
@@ -159,7 +157,7 @@ class ModelDeployment:
                 _logger.info('Transition candidate model from stage="staging" to stage="archived"')
                 client.transition_model_version_stage(name=model_name,
                                                       version=staging_model_version.version,
-                                                      stage="archived")
+                                                      stage='archived')
 
             elif staging_eval_metric < production_eval_metric:
                 _logger.info('Candidate Staging model DOES perform better than current Production model')
@@ -167,7 +165,7 @@ class ModelDeployment:
                 _logger.info('Existing Production model will be archived')
                 client.transition_model_version_stage(name=model_name,
                                                       version=staging_model_version.version,
-                                                      stage="production",
+                                                      stage='production',
                                                       archive_existing_versions=True)
 
     def run(self):

@@ -47,6 +47,6 @@ class ModelInferenceJob(Job):
         _logger.info('Batch ModelInferenceJob job finished')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     job = ModelInferenceJob()
     job.launch()

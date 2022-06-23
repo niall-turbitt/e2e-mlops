@@ -29,6 +29,7 @@ class Featurizer:
         """
         Take a pyspark.pandas DataFrame and convert a list of categorical variables (columns) into dummy/indicator
         variables, also known as one hot encoding.
+        
         Parameters
         ----------
         psdf : pyspark.pandas.DataFrame
@@ -45,6 +46,7 @@ class Featurizer:
         """
         Convert label to int and rename label column
         TODO: add test
+        
         Parameters
         ----------
         psdf : pyspark.pandas.DataFrame
@@ -66,6 +68,7 @@ class Featurizer:
         """
         Strip parentheses and spaces from existing column names, replacing spaces with '_'
         TODO: add test
+        
         Parameters
         ----------
         psdf : pyspark.pandas.DataFrame
@@ -86,6 +89,7 @@ class Featurizer:
     def drop_missing_values(psdf: pyspark.pandas.DataFrame) -> pyspark.pandas.DataFrame:
         """
         Remove missing values
+        
         Parameters
         ----------
         psdf
@@ -95,17 +99,29 @@ class Featurizer:
         """
         return psdf.dropna()
 
-    def run(self, df: pyspark.sql.dataframe.DataFrame) -> pyspark.sql.dataframe.DataFrame:
+    def run(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
         """
+        Run all data preprocessing steps. Consists of the following:
+    
+            1. Convert PySpark DataFrame to pandas_on_spark DataFrame 
+            2. Process the label column - converting to int and renaming col to 'churn'
+            3. Apply OHE if specified in the config
+            4. Drop any missing values if specified in the config
+            5. Return resulting preprocessed dataset as a PySpark DataFrame
+            
         Parameters
         ----------
-        df
+        df : pyspark.sql.DataFrame
+            Input PySpark DataFrame to preprocess
+
         Returns
         -------
+        pyspark.sql.DataFrame
+            Preprocessed dataset of features and label column
         """
         _logger.info('Running Data Preprocessing steps...')
 
-        # Convert Spark DataFrame to koalas
+        # Convert Spark DataFrame to pandas on Spark DataFrame
         psdf = df.to_pandas_on_spark()
 
         # Convert label to int and rename column
