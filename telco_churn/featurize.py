@@ -122,7 +122,7 @@ class Featurizer:
         _logger.info('Running Data Preprocessing steps...')
 
         # Convert Spark DataFrame to pandas on Spark DataFrame
-        psdf = df.to_pandas_on_spark()
+        psdf = df.pandas_api()
 
         # Convert label to int and rename column
         _logger.info(f'Processing label: {self.label_col}')
