@@ -1,10 +1,12 @@
 """Abstract class for running Databricks jobs created from dbx basic python template"""
+import os
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
 from logging import Logger
 from typing import Dict, Any
 import yaml
 import pathlib
+import dotenv
 from pyspark.sql import SparkSession
 import sys
 
@@ -29,6 +31,8 @@ class Workload(ABC):
         else:
             self.conf = self._provide_config()
         self._log_conf()
+        self.env_vars = self.get_env_vars_as_dict()
+        self._log_env_vars()
 
     @staticmethod
     def _prepare_spark(spark) -> SparkSession:
@@ -85,6 +89,33 @@ class Workload(ABC):
         config = yaml.safe_load(pathlib.Path(conf_file).read_text())
         return config
 
+    @staticmethod
+    def _get_base_data_params():
+        p = ArgumentParser()
+        p.add_argument('--base-data-params', required=False, type=str)
+        namespace = p.parse_known_args(sys.argv[1:])[0]
+        return namespace.base_data_params
+
+    @staticmethod
+    def _get_env():
+        p = ArgumentParser()
+        p.add_argument('--env', required=False, type=str)
+        namespace = p.parse_known_args(sys.argv[1:])[0]
+        return namespace.env
+
+    @staticmethod
+    def _set_environ(env_vars):
+        dotenv.load_dotenv(env_vars)
+
+    def get_env_vars_as_dict(self):
+        base_data_params = self._get_base_data_params()
+        self._set_environ(base_data_params)
+
+        env = self._get_env()
+        self._set_environ(env)
+
+        return dict(os.environ)
+
     def _prepare_logger(self) -> Logger:
         log4j_logger = self.spark._jvm.org.apache.log4j  # noqa
         return log4j_logger.LogManager.getLogger(self.__class__.__name__)
@@ -93,6 +124,12 @@ class Workload(ABC):
         # log parameters
         self.logger.info('Launching job with configuration parameters:')
         for key, item in self.conf.items():
+            self.logger.info('\t Parameter: %-30s with value => %-30s' % (key, item))
+
+    def _log_env_vars(self):
+        # log parameters
+        self.logger.info('Using environment variables:')
+        for key, item in self.env_vars.items():
             self.logger.info('\t Parameter: %-30s with value => %-30s' % (key, item))
 
     @abstractmethod
