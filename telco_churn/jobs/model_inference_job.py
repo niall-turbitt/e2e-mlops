@@ -1,14 +1,14 @@
 import os
 from typing import Dict
 
-from telco_churn.common import Job
+from telco_churn.common import Workload
 from telco_churn.model_inference import ModelInference
 from telco_churn.utils.logger_utils import get_logger
 
 _logger = get_logger()
 
 
-class ModelInferenceJob(Job):
+class ModelInferenceJob(Workload):
 
     def _get_model_uri(self) -> str:
         model_name = os.getenv('model_name')

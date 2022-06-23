@@ -1,13 +1,13 @@
 import os
 
-from telco_churn.common import Job
+from telco_churn.common import Workload
 from telco_churn.feature_table_creator import FeatureTableCreator
 from telco_churn.utils.logger_utils import get_logger
 
 _logger = get_logger()
 
 
-class FeatureTableCreatorJob(Job):
+class FeatureTableCreatorJob(Workload):
 
     def _get_data_ingest_params(self):
         return self.conf['data_ingest_params']

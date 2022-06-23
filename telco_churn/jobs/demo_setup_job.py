@@ -4,7 +4,7 @@ import mlflow
 from mlflow.tracking import MlflowClient
 from mlflow.exceptions import RestException
 
-from telco_churn.common import Job
+from telco_churn.common import Workload
 from telco_churn.utils.logger_utils import get_logger
 
 from databricks.feature_store.client import FeatureStoreClient
@@ -14,7 +14,7 @@ fs = FeatureStoreClient()
 _logger = get_logger()
 
 
-class DemoSetup(Job):
+class DemoSetup(Workload):
 
     @staticmethod
     def _check_mlflow_model_registry_exists(model_name) -> bool:

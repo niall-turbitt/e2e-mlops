@@ -1,13 +1,13 @@
 import os
 
-from telco_churn.common import Job
+from telco_churn.common import Workload
 from telco_churn.model_train import ModelTrain
 from telco_churn.utils.logger_utils import get_logger
 
 _logger = get_logger()
 
 
-class ModelTrainJob(Job):
+class ModelTrainJob(Workload):
 
     def _get_mlflow_params(self):
         return {'experiment_path': os.getenv('model_train_experiment_path'),

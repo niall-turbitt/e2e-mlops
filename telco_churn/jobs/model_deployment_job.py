@@ -1,14 +1,14 @@
 import os
 from typing import Dict
 
-from telco_churn.common import Job
+from telco_churn.common import Workload
 from telco_churn.model_deployment import ModelDeployment
 from telco_churn.utils.logger_utils import get_logger
 
 _logger = get_logger()
 
 
-class ModelDeploymentJob(Job):
+class ModelDeploymentJob(Workload):
 
     @staticmethod
     def _get_mlflow_params():
