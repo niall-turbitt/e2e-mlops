@@ -67,15 +67,12 @@ class ModelTrain:
         """
         Set MLflow experiment. Use one of either experiment_id or experiment_path
         """
-        experiment_id = mlflow_tracking_cfg.experiment_id
-        experiment_path = mlflow_tracking_cfg.experiment_path
-
-        if experiment_id is not None:
-            _logger.info(f'MLflow experiment_id: {experiment_id}')
-            mlflow.set_experiment(experiment_id=experiment_id)
-        elif experiment_path is not None:
-            _logger.info(f'MLflow experiment_path: {experiment_path}')
-            mlflow.set_experiment(experiment_name=experiment_path)
+        if mlflow_tracking_cfg.experiment_id is not None:
+            _logger.info(f'MLflow experiment_id: {mlflow_tracking_cfg.experiment_id}')
+            mlflow.set_experiment(experiment_id=mlflow_tracking_cfg.experiment_id)
+        elif mlflow_tracking_cfg.experiment_path is not None:
+            _logger.info(f'MLflow experiment_path: {mlflow_tracking_cfg.experiment_path}')
+            mlflow.set_experiment(experiment_name=mlflow_tracking_cfg.experiment_path)
         else:
             raise RuntimeError('MLflow experiment_id or experiment_path must be set in mlflow_params')
 
@@ -200,10 +197,10 @@ class ModelTrain:
 
             if self.cfg.conf is not None:
                 # Log config file
-                mlflow.log_dict(self.conf, 'conf.yml')
+                mlflow.log_dict(self.cfg.conf, 'conf.yml')
             if self.cfg.env_vars is not None:
                 # Log config file
-                mlflow.log_dict(self.conf, 'env_vars.yml')
+                mlflow.log_dict(self.cfg.env_vars, 'env_vars.yml')
 
             # Create Feature Store Training Set
             _logger.info('==========Creating Feature Store training set==========')
