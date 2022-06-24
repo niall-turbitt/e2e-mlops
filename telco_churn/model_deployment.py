@@ -13,6 +13,26 @@ _logger = get_logger()
 
 
 @dataclass
+class ModelDeploymentConfig:
+    """
+    Attributes:
+        mlflow_params (dict): Dictionary of MLflow params. Must contain the keys experiment_path and model_name.
+            experiment_path refers to the path to the MLflow experiment to track metrics from model comparison.
+            model_name refers to the name of the model in the MLflow Model Registry.
+        reference_data (str): Name of table to use as a reference DataFrame to score loaded model against.
+            Must contain column(s) for lookup keys to join feature data from Feature Store
+        label_col (str): Name of label column in input data
+        comparison_metric (str): Name of evaluation metric to use when comparing models
+        higher_is_better (bool): Boolean indicating whether a higher value for the evaluation metric equates to better
+            model performance
+    """
+    mlflow_params: dict
+    reference_data: str
+    label_col: str = 'churn'
+    comparison_metric: str = 'roc_auc_score'
+    higher_is_better: bool = True
+
+
 class ModelDeployment:
     """
     Class to execute model deployment. This class orchestrates the comparison of the current Production model versus
@@ -28,39 +48,25 @@ class ModelDeployment:
 
     Metrics computed when comparing the two models will be logged to MLflow, under the provided experiment_id or
     experiment_path.
-
-    Attributes:
-        mlflow_params (dict): Dictionary of MLflow params. Must contain the keys experiment_path and model_name.
-            experiment_path refers to the path to the MLflow experiment to track metrics from model comparison.
-            model_name refers to the name of the model in the MLflow Model Registry.
-        reference_data (str): Name of table to use as a reference DataFrame to score loaded model against.
-            Must contain column(s) for lookup keys to join feature data from Feature Store
-        label_col (str): Name of label column in input data
-        comparison_metric (str): Name of evaluation metric to use when comparing models
-        higher_is_better (bool): Boolean indicating whether a higher value for the evaluation metric equates to better
-            model performance
     """
-    mlflow_params: dict
-    reference_data: str
-    label_col: str
-    comparison_metric: str
-    higher_is_better: bool = True
+    def __init__(self, cfg: ModelDeploymentConfig):
+        self.cfg = cfg
 
     def _set_experiment(self):
         """
         Set MLflow experiment. Use one of either experiment_id or experiment_path
         """
-        if 'experiment_id' in self.mlflow_params:
-            _logger.info(f'MLflow experiment_id: {self.mlflow_params["experiment_id"]}')
-            mlflow.set_experiment(experiment_id=self.mlflow_params['experiment_id'])
-        elif 'experiment_path' in self.mlflow_params:
-            _logger.info(f'MLflow experiment_path: {self.mlflow_params["experiment_path"]}')
-            mlflow.set_experiment(experiment_name=self.mlflow_params['experiment_path'])
+        if 'experiment_id' in self.cfg.mlflow_params:
+            _logger.info(f'MLflow experiment_id: {self.cfg.mlflow_params["experiment_id"]}')
+            mlflow.set_experiment(experiment_id=self.cfg.mlflow_params['experiment_id'])
+        elif 'experiment_path' in self.cfg.mlflow_params:
+            _logger.info(f'MLflow experiment_path: {self.cfg.mlflow_params["experiment_path"]}')
+            mlflow.set_experiment(experiment_name=self.cfg.mlflow_params['experiment_path'])
         else:
             raise RuntimeError('MLflow experiment_id or experiment_path must be set in mlflow_params')
 
     def _get_model_uri_by_stage(self, stage: str):
-        return f'models:/{self.mlflow_params["model_name"]}/{stage}'
+        return f'models:/{self.cfg.mlflow_params["model_name"]}/{stage}'
 
     def _batch_inference_by_stage(self, stage: str) -> pyspark.sql.DataFrame:
         """
@@ -82,9 +88,9 @@ class ModelDeployment:
         """
         model_uri = self._get_model_uri_by_stage(stage=stage)
         _logger.info(f'Computing batch inference using: {model_uri}')
-        _logger.info(f'Reference data: {self.reference_data}')
+        _logger.info(f'Reference data: {self.cfg.reference_data}')
         model_inference = ModelInference(model_uri=model_uri,
-                                         inference_data=self.reference_data)
+                                         inference_data=self.cfg.reference_data)
 
         return model_inference.run_batch()
 
@@ -129,12 +135,12 @@ class ModelDeployment:
             Evaluation metric computed using Production model
         """
         client = MlflowClient()
-        model_name = self.mlflow_params['model_name']
+        model_name = self.cfg.mlflow_params['model_name']
         staging_model_version = client.get_latest_versions(name=model_name, stages=['staging'])[0]
 
-        _logger.info(f'metric={self.comparison_metric}')
-        _logger.info(f'higher_is_better={self.higher_is_better}')
-        if self.higher_is_better:
+        _logger.info(f'metric={self.cfg.comparison_metric}')
+        _logger.info(f'higher_is_better={self.cfg.higher_is_better}')
+        if self.cfg.higher_is_better:
             if staging_eval_metric <= production_eval_metric:
                 _logger.info('Candidate Staging model DOES NOT perform better than current Production model')
                 _logger.info('Transition candidate model from stage="staging" to stage="archived"')
@@ -198,19 +204,19 @@ class ModelDeployment:
             prod_inference_pred_pdf = prod_inference_pred_df.toPandas()
 
             _logger.info('==========Model evaluation: staging model==========')
-            staging_eval_metric = self._get_evaluation_metric(y_true=staging_inference_pred_pdf[self.label_col],
+            staging_eval_metric = self._get_evaluation_metric(y_true=staging_inference_pred_pdf[self.cfg.label_col],
                                                               y_score=staging_inference_pred_pdf['prediction'],
-                                                              metric=self.comparison_metric,
+                                                              metric=self.cfg.comparison_metric,
                                                               stage='staging')
-            _logger.info(f'Candidate Staging model (stage="staging") {self.comparison_metric}: {staging_eval_metric}')
+            _logger.info(f'Candidate Staging model (stage="staging") {self.cfg.comparison_metric}: {staging_eval_metric}')
 
             _logger.info('==========Model evaluation: production model==========')
-            production_eval_metric = self._get_evaluation_metric(y_true=prod_inference_pred_pdf[self.label_col],
+            production_eval_metric = self._get_evaluation_metric(y_true=prod_inference_pred_pdf[self.cfg.label_col],
                                                                  y_score=prod_inference_pred_pdf['prediction'],
-                                                                 metric=self.comparison_metric,
+                                                                 metric=self.cfg.comparison_metric,
                                                                  stage='production')
             _logger.info(
-                f'Current Production model (stage="production") {self.comparison_metric}: {production_eval_metric}')
+                f'Current Production model (stage="production") {self.cfg.comparison_metric}: {production_eval_metric}')
 
             _logger.info('==========Model comparison: candidate staging model vs current production model==========')
             self._run_promotion_logic(staging_eval_metric, production_eval_metric)
