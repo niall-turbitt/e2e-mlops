@@ -1,5 +1,5 @@
 mlflow_params:
-  run_name: 'random_forest_baseline'
+  run_name: 'random_forest_max_depth_update'
 
 pipeline_params:
   label_col: 'churn'
