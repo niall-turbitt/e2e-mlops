@@ -20,17 +20,29 @@ from pyspark.sql import SparkSession
 class MLflowTrackingConfig:
     """
     Configuration data class used to unpack MLflow parameters during a model training run.
+
+    Attributes:
+        run_name (str)
+            Name of MLflow run
+        experiment_id (int)
+            ID of the MLflow experiment to be activated. If an experiment with this ID does not exist, raise an exception.
+        experiment_path (str)
+            Case sensitive name of the experiment to be activated. If an experiment with this name does not exist,
+            a new experiment wth this name is created.
+        model_name (str)
+            Name of the registered model under which to create a new model version. If a registered model with the given
+            name does not exist, it will be created automatically.
     """
     run_name: str
-    model_name: str
     experiment_id: int = None
     experiment_path: str = None
+    model_name: str = None
 
 
 @dataclass
 class FeatureStoreTableConfig:
     """
-    Configuration data class used to unpack parameters when creating a new Feature Store table.
+    Configuration data class used to unpack parameters when creating or loading a Feature Store table.
 
     Attributes:
         database_name (str)
@@ -42,6 +54,7 @@ class FeatureStoreTableConfig:
             primary key for the telco churn example.
         description (str)
             [Optional] string containing description to attribute to the feature table in the Feature Store.
+            Only used when creating a Feature Store table.
     """
     database_name: str
     table_name: str
@@ -52,7 +65,7 @@ class FeatureStoreTableConfig:
 @dataclass
 class LabelsTableConfig:
     """
-    Configuration data class used to unpack parameters when creating a new labels table.
+    Configuration data class used to unpack parameters when creating or loading labels table.
 
     Attributes:
         database_name (str)
