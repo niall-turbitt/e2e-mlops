@@ -1,17 +1,16 @@
 """Abstract class for running Databricks jobs created from dbx basic python template"""
 import os
+import sys
+import yaml
+import pathlib
+import dotenv
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
 from logging import Logger
 from typing import Dict, Any
-import yaml
-import pathlib
-import dotenv
 from pyspark.sql import SparkSession
-import sys
 
 
-# abstract class for jobs
 class Workload(ABC):
     """
     This is an abstract class that provides handy interfaces to implement workloads (e.g. jobs or job tasks).
