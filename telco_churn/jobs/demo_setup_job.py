@@ -71,8 +71,15 @@ class DemoSetup(Workload):
         -------
         Dictionary indicating whether train and deploy MLflow experiments currently exist
         """
-        train_experiment_id = self.env_vars['model_train_experiment_id']    # will be None if not passed
-        train_experiment_path = self.env_vars['model_train_experiment_path']
+        try:
+            train_experiment_id = self.env_vars['model_train_experiment_id']
+        except KeyError:
+            train_experiment_id = None
+        try:
+            train_experiment_path = self.env_vars['model_train_experiment_path']
+        except KeyError:
+            train_experiment_path = None
+
         deploy_experiment_id = self.env_vars['model_deploy_experiment_id']
         deploy_experiment_path = self.env_vars['model_deploy_experiment_path']
 
