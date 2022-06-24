@@ -1,14 +1,41 @@
-"""Abstract class for running Databricks jobs created from dbx basic python template"""
+"""
+Module containing common data classes used throughout different pipelines, in addition to Workload class which is
+extended to run jobs/tasks.
+"""
 import os
 import sys
+from dataclasses import dataclass
+
 import yaml
 import pathlib
 import dotenv
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
 from logging import Logger
-from typing import Dict, Any
+from typing import Dict, Any, Union, List
 from pyspark.sql import SparkSession
+
+
+@dataclass
+class MLflowTrackingConfig:
+    run_name: str
+    model_name: str
+    experiment_id: int = None
+    experiment_path: str = None
+
+
+@dataclass
+class FeatureStoreTableConfig:
+    table_name: str
+    primary_keys: Union[str, List[str]]
+    description: str = None
+
+
+@dataclass
+class LabelsTableConfig:
+    table_name: str
+    label_col: str
+    primary_keys: Union[str, List[str]] = None
 
 
 class Workload(ABC):
@@ -20,6 +47,7 @@ class Workload(ABC):
     * self.dbutils provides access to the DBUtils
     * self.logger provides access to the Spark-compatible logger
     * self.conf provides access to the parsed configuration of the job
+    * self.env_vars provides access to the parsed environment variables of the job
     """
     def __init__(self, spark=None, init_conf=None):
         self.spark = self._prepare_spark(spark)
