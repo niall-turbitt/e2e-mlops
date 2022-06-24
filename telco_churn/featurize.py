@@ -9,11 +9,9 @@ _logger = get_logger()
 
 
 @dataclass
-class Featurizer:
+class FeaturizerConfig:
     """
-    Class containing featurization logic to apply to input Spark DataFrame
-
-    Attributes:
+     Attributes:
         label_col (str): Name of original label column in input data
         ohe (bool): Flag to indicate whether or not to one hot encode categorical columns
         cat_cols (list): List of categorical columns. Only required if ohe=True
@@ -23,6 +21,14 @@ class Featurizer:
     ohe: bool = False
     cat_cols: list = None
     drop_missing: bool = True
+
+
+class Featurizer:
+    """
+    Class containing featurization logic to apply to input Spark DataFrame
+    """
+    def __init__(self, cfg: FeaturizerConfig):
+        self.cfg = cfg 
 
     @staticmethod
     def pyspark_pandas_ohe(psdf: ps.DataFrame, cat_cols: list) -> pyspark.pandas.DataFrame:
@@ -57,9 +63,9 @@ class Featurizer:
         -------
         pyspark.pandas.DataFrame
         """
-        psdf[self.label_col] = psdf[self.label_col].map({'Yes': 1, 'No': 0})
-        psdf = psdf.astype({self.label_col: 'int32'})
-        psdf = psdf.rename(columns={self.label_col: rename_to})
+        psdf[self.cfg.label_col] = psdf[self.cfg.label_col].map({'Yes': 1, 'No': 0})
+        psdf = psdf.astype({self.cfg.label_col: 'int32'})
+        psdf = psdf.rename(columns={self.cfg.label_col: rename_to})
 
         return psdf
 
@@ -125,22 +131,22 @@ class Featurizer:
         psdf = df.pandas_api()
 
         # Convert label to int and rename column
-        _logger.info(f'Processing label: {self.label_col}')
+        _logger.info(f'Processing label: {self.cfg.label_col}')
         psdf = self.process_label(psdf, rename_to='churn')
 
         # OHE
-        if self.ohe:
+        if self.cfg.ohe:
             _logger.info('Applying one-hot-encoding')
-            if self.cat_cols is None:
+            if self.cfg.cat_cols is None:
                 raise RuntimeError('cat_cols must be provided if ohe=True')
-            psdf = self.pyspark_pandas_ohe(psdf, self.cat_cols)
+            psdf = self.pyspark_pandas_ohe(psdf, self.cfg.cat_cols)
 
             # Clean up column names resulting from OHE
             _logger.info(f'Renaming columns')
             psdf = self.process_col_names(psdf)
 
         # Drop missing values
-        if self.drop_missing:
+        if self.cfg.drop_missing:
             _logger.info(f'Dropping missing values')
             psdf = self.drop_missing_values(psdf)
 

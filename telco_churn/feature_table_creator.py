@@ -35,7 +35,7 @@ class FeatureTableCreator:
             label_col: name of column to use as the label column (in telco churn example we rename this column to 'churn')
             dbfs_path: DBFS path to use for the labels table (saving as a Delta table)
     """
-    data_ingest_params: dict
+    input_table: str
     data_prep_params: dict
     feature_store_params: dict
     labels_table_params: dict
