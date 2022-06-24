@@ -67,12 +67,15 @@ class ModelTrain:
         """
         Set MLflow experiment. Use one of either experiment_id or experiment_path
         """
-        if mlflow_tracking_cfg.experiment_id is not None:
-            _logger.info(f'MLflow experiment_id: {mlflow_tracking_cfg.experiment_id}')
-            mlflow.set_experiment(experiment_id=mlflow_tracking_cfg.experiment_id)
-        elif mlflow_tracking_cfg.experiment_path is not None:
-            _logger.info(f'MLflow experiment_path: {mlflow_tracking_cfg.experiment_path}')
-            mlflow.set_experiment(experiment_name=mlflow_tracking_cfg.experiment_path)
+        experiment_id = mlflow_tracking_cfg.experiment_id
+        experiment_path = mlflow_tracking_cfg.experiment_path
+
+        if experiment_id is not None:
+            _logger.info(f'MLflow experiment_id: {experiment_id}')
+            mlflow.set_experiment(experiment_id=experiment_id)
+        elif experiment_path is not None:
+            _logger.info(f'MLflow experiment_path: {experiment_path}')
+            mlflow.set_experiment(experiment_name=experiment_path)
         else:
             raise RuntimeError('MLflow experiment_id or experiment_path must be set in mlflow_params')
 
