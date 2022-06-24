@@ -18,6 +18,9 @@ from pyspark.sql import SparkSession
 
 @dataclass
 class MLflowTrackingConfig:
+    """
+    Configuration data class used to unpack MLflow parameters during a model training run.
+    """
     run_name: str
     model_name: str
     experiment_id: int = None
@@ -27,16 +30,18 @@ class MLflowTrackingConfig:
 @dataclass
 class FeatureStoreTableConfig:
     """
-    database_name :  str
-            Name of database to use for creating the feature table
-        table_name :  str
-            Name of feature table
+    Configuration data class used to unpack parameters when creating a new Feature Store table.
 
-database_name: name of database to use for creating the feature table
-            table_name: name of feature table
-            primary_keys: string or list of columns to use as the primary key(s). Use single column (customerID) as the
-                primary key for the telco churn example.
-            description: string containing description to attribute to the feature table in the Feature Store.
+    Attributes:
+        database_name (str)
+            Name of database to use for creating the feature table
+        table_name (str)
+            Name of feature table
+        primary_keys (string or list)
+            String or list of strings, of columns to use as the primary key(s). Use single column (customerID) as the
+            primary key for the telco churn example.
+        description (str)
+            [Optional] string containing description to attribute to the feature table in the Feature Store.
     """
     database_name: str
     table_name: str
@@ -47,11 +52,19 @@ database_name: name of database to use for creating the feature table
 @dataclass
 class LabelsTableConfig:
     """
+    Configuration data class used to unpack parameters when creating a new labels table.
+
     Attributes:
-        database_name: name of database to use for creating the labels table
-        table_name: name of labels table
-        label_col: name of column to use as the label column (in telco churn example we rename this column to 'churn')
-        dbfs_path: DBFS path to use for the labels table (saving as a Delta table)
+        database_name (str)
+            Name of database to use for creating the labels table
+        table_name (str)
+            Name of labels table within the database
+        label_col (str)
+            Name of column to use as the label column (in telco churn example we rename this column to 'churn')
+        primary_keys (string or list)
+            [Optional] String or list of strings, of columns to use as the primary key(s)
+        dbfs_path (str)
+            [Optional] DBFS path to use for the labels table (saving as a Delta table)
     """
     database_name: str
     table_name: str
