@@ -1,7 +1,7 @@
-from telco_churn.common import Job
+from telco_churn.common import Workload
 
 
-class SampleJob(Job):
+class SampleJob(Workload):
 
     def launch(self):
         self.logger.info('Launching sample job')

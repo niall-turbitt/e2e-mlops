@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 import pyspark.sql.dataframe
 from databricks.feature_store import FeatureStoreClient
 
@@ -9,18 +7,22 @@ from telco_churn.utils.logger_utils import get_logger
 _logger = get_logger()
 
 
-@dataclass
 class ModelInference:
     """
     Class to execute model inference
-
-    Attributes:
-        model_uri (str): MLflow model uri. Model model must have been logged using the Feature Store API
-        inference_data (str): Table name to load as a Spark DataFrame to score the model on. Must contain column(s)
-            for lookup keys to join feature data from Feature Store
     """
-    model_uri: str
-    inference_data: str = None
+    def __init__(self, model_uri: str, inference_data: str):
+        """
+        Parameters
+        ----------
+        model_uri : str
+            MLflow model uri. Model model must have been logged using the Feature Store API
+        inference_data : str
+            Table name to load as a Spark DataFrame to score the model on. Must contain column(s)
+            for lookup keys to join feature data from Feature Store
+        """
+        self.model_uri = model_uri
+        self.inference_data = inference_data
 
     def _load_inference_df(self) -> pyspark.sql.DataFrame:
         """

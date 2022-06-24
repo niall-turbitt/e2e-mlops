@@ -1,66 +1,5 @@
 custom:
 
-  # Global MLflow params for each environment
-  mlflow-params-dev: &mlflow-params-dev
-    model_train_experiment_path: '/Shared/e2e_mlops/telco_churn_experiment_dev'
-    model_name: 'e2e_mlops_telco_churn_dev'
-    model_deploy_experiment_path: '/Shared/e2e_mlops/telco_churn_deployment_dev'
-
-  mlflow-params-prod: &mlflow-params-prod
-    model_train_experiment_path: '/Shared/e2e_mlops/telco_churn_experiment_prod'
-    model_name: 'e2e_mlops_telco_churn_prod'
-    model_deploy_experiment_path: '/Shared/e2e_mlops/telco_churn_deployment_prod'
-
-  # Global data params for each environment
-  data-params-base: &data-params-base
-    # Feature Store params
-    feature_store_table_name: 'churn_features'
-    feature_store_table_primary_keys: 'customerID'
-    feature_store_table_description: 'These features are derived from the ibm_telco_churn.bronze_customers table in the lakehouse.  We created dummy variables for the categorical columns, cleaned up their names, and added a boolean flag for whether the customer churned or not.  No aggregations were performed.'
-    # Labels table params
-    labels_table_name: 'churn_labels'
-    labels_table_label_col: 'churn'
-    # Batch inference input table params
-    # For demo purposes we use the churn_labels table
-    inference_table_name: 'churn_labels'
-    # Batch inference predictions table params
-    predictions_table_name: 'churn_predictions'
-    # Reference table params - table to use for comparing staging vs production models
-    # For demo purposes we use the churn_labels table. However this reference table in practice would be a curated dataset
-    # Note: this table must contain column(s) for lookup keys to join feature data from Feature Store
-    reference_table_name: 'churn_labels'
-    reference_table_label_col: 'churn'
-
-  data-params-dev: &data-params-dev
-    <<: *data-params-base
-    # Feature Store params
-    feature_store_database_name: 'e2e_mlops_dev'
-    # Labels table params
-    labels_table_database_name: 'e2e_mlops_dev'
-    labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_labels.delta'  # tmp directory for demo purposes
-    # Batch inference input table params
-    inference_database_name: 'e2e_mlops_dev'
-    # Batch inference predictions table params
-    predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_dev/churn_predictions.delta'  # tmp directory for demo purposes
-    predictions_table_database_name: 'e2e_mlops_dev'
-    # Reference table params - table to use for comparing staging vs production models
-    reference_table_database_name: 'e2e_mlops_dev'
-
-  data-params-prod: &data-params-prod
-    <<: *data-params-base
-    # Feature Store params
-    feature_store_database_name: 'e2e_mlops_prod'
-    # Labels table params
-    labels_table_database_name: 'e2e_mlops_prod'
-    labels_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_labels.delta' # tmp directory for demo purposes
-    # Batch inference input table params
-    inference_database_name: 'e2e_mlops_prod'
-    # Batch inference predictions table params
-    predictions_table_dbfs_path: 'dbfs:/tmp/e2e_mlops_prod/churn_predictions.delta' # tmp directory for demo purposes
-    predictions_table_database_name: 'e2e_mlops_prod'
-    # Reference table params - table to use for comparing staging vs production models
-    reference_table_database_name: 'e2e_mlops_prod'
-
   # Cluster configs for each environment
   # For demo purposes we will use a warm pool to acquire instances from
   default-cluster-spec: &default-cluster-spec
@@ -74,25 +13,17 @@ custom:
   dev-cluster-config: &dev-cluster-config
     new_cluster:
       <<: *default-cluster-spec
-      spark_env_vars:
-        DEPLOYMENT_ENV: dev
-        <<: [*mlflow-params-dev, *data-params-dev]
 
   staging-cluster-config: &staging-cluster-config
     new_cluster:
       <<: *default-cluster-spec
-      spark_env_vars:
-        DEPLOYMENT_ENV: staging
 
   prod-cluster-config: &prod-cluster-config
     new_cluster:
       <<: *default-cluster-spec
-      spark_env_vars:
-        DEPLOYMENT_ENV: prod
-        <<: [*mlflow-params-prod, *data-params-prod]
 
 # Databricks Jobs definitions
-# please note that we're using FUSE reference for config file, hence we're going to load this file using its local FS path
+# please note that we're using FUSE reference for config, and env files, hence we're going to load this file using its local FS path
 environments:
 
   dev:
@@ -102,36 +33,48 @@ environments:
         <<: *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/demo_setup_job.py'
-          parameters: [ '--conf-file', 'file:fuse://conf/job_configs/demo_setup.yml' ]
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/.dev.env',
+                       '--conf-file', 'file:fuse://conf/job_configs/demo_setup.yml']
       - name: 'feature-table-creation'
         <<: *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/feature_table_creator_job.py'
-          parameters: ['--conf-file', 'file:fuse://conf/job_configs/feature_table_creation.yml']
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/.dev.env',
+                       '--conf-file', 'file:fuse://conf/job_configs/feature_table_creation.yml']
       - name: 'model-train'
         <<:
           - *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/model_train_job.py'
-          parameters: ['--conf-file', 'file:fuse://conf/job_configs/model_train.yml']
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/.dev.env',
+                       '--conf-file', 'file:fuse://conf/job_configs/model_train.yml']
       - name: 'model-deployment'
         <<:
           - *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/model_deployment_job.py'
-          parameters: ['--conf-file', 'file:fuse://conf/job_configs/model_deployment.yml']
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/.dev.env',
+                       '--conf-file', 'file:fuse://conf/job_configs/model_deployment.yml']
       - name: 'model-inference-batch'
         <<:
           - *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/model_inference_job.py'
-          parameters: ['--conf-file', 'file:fuse://conf/job_configs/model_inference_batch.yml']
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/.dev.env',
+                       '--conf-file', 'file:fuse://conf/job_configs/model_inference_batch.yml']
       - name: 'sample-integration-test'
         <<:
           - *dev-cluster-config
         spark_python_task:
           python_file: 'file://tests/integration/sample_test.py'
-          parameters: [ '--conf-file', 'file:fuse://conf/job_configs/sample_test.yml' ]
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/.dev.env',
+                       '--conf-file', 'file:fuse://conf/job_configs/sample_test.yml' ]
 
   staging:
     strict_path_adjustment_policy: true
@@ -141,7 +84,8 @@ environments:
           - *staging-cluster-config
         spark_python_task:
           python_file: 'file://tests/integration/sample_test.py'
-          parameters: [ '--conf-file', 'file:fuse://conf/job_configs/sample_test.yml' ]
+          parameters: ['--env', 'file:fuse://conf/.staging.env',
+                       '--conf-file', 'file:fuse://conf/job_configs/sample_test.yml' ]
 
   prod:
     strict_path_adjustment_policy: true
@@ -150,7 +94,9 @@ environments:
         <<: *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/demo_setup_job.py'
-          parameters: [ '--conf-file', 'file:fuse://conf/job_configs/demo_setup.yml' ]
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/.prod.env',
+                       '--conf-file', 'file:fuse://conf/job_configs/demo_setup.yml' ]
       - name: 'initial-model-train-register'
         tasks:
           - task_key: 'demo-setup'
@@ -158,14 +104,18 @@ environments:
               - *prod-cluster-config
             spark_python_task:
               python_file: 'file://telco_churn/jobs/demo_setup_job.py'
-              parameters: [ '--conf-file', 'file:fuse://conf/job_configs/demo_setup.yml' ]
+              parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                           '--env', 'file:fuse://conf/.prod.env',
+                           '--conf-file', 'file:fuse://conf/job_configs/demo_setup.yml' ]
           - task_key: 'feature-table-creation'
             <<: *prod-cluster-config
             depends_on:
               - task_key: 'demo-setup'
             spark_python_task:
               python_file: 'file://telco_churn/jobs/feature_table_creator_job.py'
-              parameters: ['--conf-file', 'file:fuse://conf/job_configs/feature_table_creation.yml']
+              parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                           '--env', 'file:fuse://conf/.prod.env',
+                           '--conf-file', 'file:fuse://conf/job_configs/feature_table_creation.yml']
           - task_key: 'model-train'
             <<: *prod-cluster-config
             depends_on:
@@ -173,22 +123,30 @@ environments:
               - task_key: 'feature-table-creation'
             spark_python_task:
               python_file: 'file://telco_churn/jobs/model_train_job.py'
-              parameters: ['--conf-file', 'file:fuse://conf/job_configs/model_train.yml']
+              parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                           '--env', 'file:fuse://conf/.prod.env',
+                           '--conf-file', 'file:fuse://conf/job_configs/model_train.yml']
       - name: 'model-train'
         <<:
           - *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/model_train_job.py'
-          parameters: ['--conf-file', 'file:fuse://conf/job_configs/model_train.yml']
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/.prod.env',
+                       '--conf-file', 'file:fuse://conf/job_configs/model_train.yml']
       - name: 'model-deployment'
         <<:
           - *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/model_deployment_job.py'
-          parameters: ['--conf-file', 'file:fuse://conf/job_configs/model_deployment.yml']
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/.prod.env',
+                       '--conf-file', 'file:fuse://conf/job_configs/model_deployment.yml']
       - name: 'model-inference-batch'
         <<:
           - *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/jobs/model_inference_job.py'
-          parameters: ['--conf-file', 'file:fuse://conf/job_configs/model_inference_batch.yml']
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/.prod.env',
+                       '--conf-file', 'file:fuse://conf/job_configs/model_inference_batch.yml']

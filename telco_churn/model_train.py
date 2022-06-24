@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict, Any
 import pprint
 
 import pandas as pd
@@ -11,6 +11,7 @@ from mlflow.models import infer_signature
 import databricks
 from databricks.feature_store import FeatureStoreClient, FeatureLookup
 
+from telco_churn.common import MLflowTrackingConfig, FeatureStoreTableConfig, LabelsTableConfig
 from telco_churn.model_train_pipeline import ModelTrainPipeline
 from telco_churn.utils.get_spark import spark
 from telco_churn.utils.logger_utils import get_logger
@@ -20,76 +21,76 @@ _logger = get_logger()
 
 
 @dataclass
-class ModelTrain:
+class ModelTrainConfig:
     """
-    Class to execute model training. Params, metrics and model artifacts will be tracking to MLflow Tracking. Optionally,
-    the resulting model will be registered to MLflow Model Registry if provided
+    Configuration data class used to execute ModelTrain pipeline.
 
     Attributes:
-        mlflow_params : dict
-            Dictionary of MLflow parameters to use (either experiment_id or experiment_path can be used):
-                - experiment_id: ID of the MLflow experiment to be activated. If an experiment with this ID does not
-                     exist, an exception is thrown.
-                 - experiment_path: Case sensitive name of the experiment to be activated. If an experiment with this
-                     name does not exist, a new experiment wth this name is created.
-                - run_name: Name of MLflow run
-                - model_name: Name of the registered model under which to create a new model version.
-                      If a registered model with the given name does not exist, it will be created automatically.
-        data_input (dict): Dictionary of feature_store_params, labels_table_params. Each of which are themselves dicts.
-            feature_store_params:
-                - table_name: Name of Databricks Feature Store feature table in format <database_name>.<table_name>
-                - primary_keys: (str or list) Name(s) of the primary key(s) column(s)
-            labels_table_params:
-                table_name: Name of labels table with columns primary_keys, and label_col. Table name in format
-                     <database_name>.<table_name>
-        pipeline_params (dict): Params to use in preprocessing pipeline
-            - label_col: Name of label column
+        mlflow_tracking_cfg (MLflowTrackingConfig)
+            Configuration data class used to unpack MLflow parameters during a model training run.
+        feature_store_table_cfg (FeatureStoreTableConfig):
+            Configuration data class used to unpack parameters when loading the Feature Store table.
+        labels_table_cfg (LabelsTableConfig):
+            Configuration data class used to unpack parameters when loading labels table.
+        pipeline_params (dict):
+            Params to use in preprocessing pipeline. Read from model_train.yml
             - test_size: Proportion of input data to use as training data
             - random_state: Random state to enable reproducible train-test split
-        model_params (dict): Dictionary of params for model
-        conf (dict): Optional dictionary of conf file used to trigger pipeline. If provided will be tracked as a yml
+        model_params (dict):
+            Dictionary of params for model. Read from model_train.yml
+        conf (dict):
+            [Optional] dictionary of conf file used to trigger pipeline. If provided will be tracked as a yml
+            file to MLflow tracking.
+        env_vars (dict):
+            [Optional] dictionary of environment variables to trigger pipeline. If provided will be tracked as a yml
             file to MLflow tracking.
     """
-    mlflow_params: dict
-    data_input: dict
-    pipeline_params: dict
-    model_params: dict
-    conf: dict = None
+    mlflow_tracking_cfg: MLflowTrackingConfig
+    feature_store_table_cfg: FeatureStoreTableConfig
+    labels_table_cfg: LabelsTableConfig
+    pipeline_params: Dict[str, Any]
+    model_params: Dict[str, Any]
+    conf: Dict[str, Any] = None
+    env_vars: Dict[str, str] = None
 
-    def _set_experiment(self):
+
+class ModelTrain:
+    """
+    Class to execute model training. Params, metrics and model artifacts will be tracking to MLflow Tracking.
+    Optionally, the resulting model will be registered to MLflow Model Registry if provided.
+    """
+    def __init__(self, cfg: ModelTrainConfig):
+        self.cfg = cfg
+
+    @staticmethod
+    def _set_experiment(mlflow_tracking_cfg: MLflowTrackingConfig):
         """
         Set MLflow experiment. Use one of either experiment_id or experiment_path
         """
-        if 'experiment_id' in self.mlflow_params:
-            _logger.info(f'MLflow experiment_id: {self.mlflow_params["experiment_id"]}')
-            mlflow.set_experiment(experiment_id=self.mlflow_params['experiment_id'])
-        elif 'experiment_path' in self.mlflow_params:
-            _logger.info(f'MLflow experiment_path: {self.mlflow_params["experiment_path"]}')
-            mlflow.set_experiment(experiment_name=self.mlflow_params['experiment_path'])
+        if mlflow_tracking_cfg.experiment_id is not None:
+            _logger.info(f'MLflow experiment_id: {mlflow_tracking_cfg.experiment_id}')
+            mlflow.set_experiment(experiment_id=mlflow_tracking_cfg.experiment_id)
+        elif mlflow_tracking_cfg.experiment_path is not None:
+            _logger.info(f'MLflow experiment_path: {mlflow_tracking_cfg.experiment_path}')
+            mlflow.set_experiment(experiment_name=mlflow_tracking_cfg.experiment_path)
         else:
             raise RuntimeError('MLflow experiment_id or experiment_path must be set in mlflow_params')
 
-    @staticmethod
-    def _get_feature_table_lookup(feature_store_params: dict) \
-            -> List[databricks.feature_store.entities.feature_lookup.FeatureLookup]:
+    def _get_feature_table_lookup(self) -> List[databricks.feature_store.entities.feature_lookup.FeatureLookup]:
         """
         Create list of FeatureLookup for single feature store table. The FeatureLookup is a value class used to specify
         features to use in a TrainingSet.
-
-        Parameters
-        ----------
-        feature_store_params : dict
-            Dictionary containing the Feature Store table name, and table primary keys
 
         Returns
         -------
         List[databricks.feature_store.entities.feature_lookup.FeatureLookup]
         """
-        _logger.info('Creating feature lookups...')
-        feature_table_name = feature_store_params['table_name']
-        feature_lookup = FeatureLookup(table_name=feature_table_name,
-                                       lookup_key=feature_store_params['primary_keys'])
+        feature_store_table_cfg = self.cfg.feature_store_table_cfg
 
+        _logger.info('Creating feature lookups...')
+        feature_table_name = f'{feature_store_table_cfg.database_name}.{feature_store_table_cfg.table_name}'
+        feature_lookup = FeatureLookup(table_name=feature_table_name,
+                                       lookup_key=feature_store_table_cfg.primary_keys)
         # Lookup for single feature table
         feature_table_lookup = [feature_lookup]
 
@@ -103,15 +104,16 @@ class ModelTrain:
         -------
         databricks.feature_store.training_set.TrainingSet
         """
-        feature_store_params = self.data_input['feature_store_params']
-        feature_table_lookup = self._get_feature_table_lookup(feature_store_params)
-        labels_df = spark.table(self.data_input['labels_table_params']['table_name'])
-        _logger.info('Creating Feature Store training set...')
+        feature_store_table_cfg = self.cfg.feature_store_table_cfg
+        labels_table_cfg = self.cfg.labels_table_cfg
+        labels_df = spark.table(f'{labels_table_cfg.database_name}.{labels_table_cfg.table_name}')
 
+        feature_table_lookup = self._get_feature_table_lookup()
+        _logger.info('Creating Feature Store training set...')
         return fs.create_training_set(df=labels_df,
                                       feature_lookups=feature_table_lookup,
-                                      label=self.pipeline_params['label_col'],
-                                      exclude_columns=self.data_input['feature_store_params']['primary_keys'])
+                                      label=labels_table_cfg.label_col,
+                                      exclude_columns=feature_store_table_cfg.primary_keys)
 
     def create_train_test_split(self, fs_training_set: databricks.feature_store.training_set.TrainingSet):
         """
@@ -127,16 +129,18 @@ class ModelTrain:
         -------
         train-test splits
         """
+        labels_table_cfg = self.cfg.labels_table_cfg
+
         _logger.info('Load training set from Feature Store, converting to pandas DataFrame')
         training_set_pdf = fs_training_set.load_df().toPandas()
 
-        X = training_set_pdf.drop(self.pipeline_params['label_col'], axis=1)
-        y = training_set_pdf[self.pipeline_params['label_col']]
+        X = training_set_pdf.drop(labels_table_cfg.label_col, axis=1)
+        y = training_set_pdf[labels_table_cfg.label_col]
 
-        _logger.info(f'Splitting into train/test splits - test_size: {self.pipeline_params["test_size"]}')
+        _logger.info(f'Splitting into train/test splits - test_size: {self.cfg.pipeline_params["test_size"]}')
         X_train, X_test, y_train, y_test = train_test_split(X, y,
-                                                            random_state=self.pipeline_params['random_state'],
-                                                            test_size=self.pipeline_params['test_size'],
+                                                            random_state=self.cfg.pipeline_params['random_state'],
+                                                            test_size=self.cfg.pipeline_params['test_size'],
                                                             stratify=y)
 
         return X_train, X_test, y_train, y_test
@@ -158,10 +162,10 @@ class ModelTrain:
         scikit-learn pipeline with fitted steps.
         """
         _logger.info('Creating sklearn pipeline...')
-        pipeline = ModelTrainPipeline.create_train_pipeline(self.model_params)
+        pipeline = ModelTrainPipeline.create_train_pipeline(self.cfg.model_params)
 
         _logger.info('Fitting sklearn RandomForestClassifier...')
-        _logger.info(f'Model params: {pprint.pformat(self.model_params)}')
+        _logger.info(f'Model params: {pprint.pformat(self.cfg.model_params)}')
         model = pipeline.fit(X_train, y_train)
 
         return model
@@ -181,18 +185,22 @@ class ModelTrain:
             7. Register the model to MLflow model registry if model_name is provided in mlflow_params
         """
         _logger.info('==========Running model training==========')
+        mlflow_tracking_cfg = self.cfg.mlflow_tracking_cfg
 
         _logger.info('==========Setting MLflow experiment==========')
-        self._set_experiment()
+        self._set_experiment(mlflow_tracking_cfg)
         # Enable automatic logging of input samples, metrics, parameters, and models
         mlflow.sklearn.autolog(log_input_examples=True, silent=True)
 
         _logger.info('==========Starting MLflow run==========')
-        with mlflow.start_run(run_name=self.mlflow_params['run_name']) as mlflow_run:
+        with mlflow.start_run(run_name=mlflow_tracking_cfg.run_name) as mlflow_run:
 
-            if self.conf is not None:
+            if self.cfg.conf is not None:
                 # Log config file
-                mlflow.log_dict(self.conf, 'conf.yml')
+                mlflow.log_dict(self.cfg.conf, 'conf.yml')
+            if self.cfg.env_vars is not None:
+                # Log config file
+                mlflow.log_dict(self.cfg.env_vars, 'env_vars.yml')
 
             # Create Feature Store Training Set
             _logger.info('==========Creating Feature Store training set==========')
@@ -224,10 +232,10 @@ class ModelTrain:
             print(pd.DataFrame(test_metrics, index=[0]))
 
             # Register model to MLflow Model Registry if provided
-            if self.mlflow_params['model_name']:
+            if mlflow_tracking_cfg.model_name is not None:
                 _logger.info('==========MLflow Model Registry==========')
-                _logger.info(f'Registering model: {self.mlflow_params["model_name"]}')
+                _logger.info(f'Registering model: {mlflow_tracking_cfg.model_name}')
                 mlflow.register_model(f'runs:/{mlflow_run.info.run_id}/fs_model',
-                                      name=self.mlflow_params['model_name'])
+                                      name=mlflow_tracking_cfg.model_name)
 
         _logger.info('==========Model training completed==========')

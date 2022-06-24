@@ -1,31 +1,36 @@
-import os
-
-from telco_churn.common import Job
-from telco_churn.model_train import ModelTrain
+from telco_churn.common import Workload, MLflowTrackingConfig, FeatureStoreTableConfig, LabelsTableConfig
+from telco_churn.model_train import ModelTrain, ModelTrainConfig
 from telco_churn.utils.logger_utils import get_logger
 
 _logger = get_logger()
 
 
-class ModelTrainJob(Job):
+class ModelTrainJob(Workload):
 
-    def _get_mlflow_params(self):
-        return {'experiment_path': os.getenv('model_train_experiment_path'),
-                'run_name': self.conf['mlflow_params']['run_name'],
-                'model_name': os.getenv('model_name')}
+    def _get_mlflow_tracking_cfg(self):
+        try:
+            experiment_id = self.env_vars['model_train_experiment_id']
+        except KeyError:
+            experiment_id = None
+        try:
+            experiment_path = self.env_vars['model_train_experiment_path']
+        except KeyError:
+            experiment_path = None
 
-    @staticmethod
-    def _get_data_input():
-        feature_store_database_name = os.getenv('feature_store_database_name')
-        feature_store_table_name = os.getenv('feature_store_table_name')
-        feature_store_params = {'table_name': f'{feature_store_database_name}.{feature_store_table_name}',
-                                'primary_keys': os.getenv('feature_store_table_primary_keys')}
-        labels_table_database_name = os.getenv('labels_table_database_name')
-        labels_table_name = os.getenv('labels_table_name')
-        labels_table_params = {'table_name': f'{labels_table_database_name}.{labels_table_name}'}
+        return MLflowTrackingConfig(run_name=self.conf['mlflow_params']['run_name'],
+                                    experiment_id=experiment_id,
+                                    experiment_path=experiment_path,
+                                    model_name=self.env_vars['model_name'])
 
-        return {'feature_store_params': feature_store_params,
-                'labels_table_params': labels_table_params}
+    def _get_feature_store_table_cfg(self):
+        return FeatureStoreTableConfig(database_name=self.env_vars['feature_store_database_name'],
+                                       table_name=self.env_vars['feature_store_table_name'],
+                                       primary_keys=self.env_vars['feature_store_table_primary_keys'])
+
+    def _get_labels_table_cfg(self):
+        return LabelsTableConfig(database_name=self.env_vars['labels_table_database_name'],
+                                 table_name=self.env_vars['labels_table_name'],
+                                 label_col=self.env_vars['labels_table_label_col'])
 
     def _get_pipeline_params(self):
         return self.conf['pipeline_params']
@@ -35,12 +40,15 @@ class ModelTrainJob(Job):
 
     def launch(self):
         _logger.info('Launching ModelTrainJob job')
-        _logger.info(f'Running model-train pipeline in {os.getenv("DEPLOYMENT_ENV")} environment')
-        ModelTrain(mlflow_params=self._get_mlflow_params(),
-                   data_input=self._get_data_input(),
-                   pipeline_params=self._get_pipeline_params(),
-                   model_params=self._get_model_params(),
-                   conf=self.conf).run()
+        _logger.info(f'Running model-train pipeline in {self.env_vars["DEPLOYMENT_ENV"]} environment')
+        cfg = ModelTrainConfig(mlflow_tracking_cfg=self._get_mlflow_tracking_cfg(),
+                               feature_store_table_cfg=self._get_feature_store_table_cfg(),
+                               labels_table_cfg=self._get_labels_table_cfg(),
+                               pipeline_params=self._get_pipeline_params(),
+                               model_params=self._get_model_params(),
+                               conf=self.conf,
+                               env_vars=self.env_vars)
+        ModelTrain(cfg).run()
         _logger.info('ModelTrainJob job finished!')
 
 

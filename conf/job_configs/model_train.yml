@@ -2,7 +2,6 @@ mlflow_params:
   run_name: 'random_forest_baseline'
 
 pipeline_params:
-  label_col: 'churn'
   test_size: 0.25
   random_state: 42
 
