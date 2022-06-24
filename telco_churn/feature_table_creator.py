@@ -16,23 +16,14 @@ _logger = get_logger()
 class FeatureTableCreatorConfig:
     """
     Attributes:
-        input_table (str): Name of the table to use as input for creating features
-        data_prep_params (dict): Dictionary containing label_col, ohe, cat_cols (optional) and drop_missing keys.
-            label_col: name of column from input_table to use as the label column
-            ohe: boolean to indicate whether or not to one hot encode categorical columns
-            cat_cols: only required if ohe=True. Names of categorical columns to one hot encode
-            drop_missing: boolean to indicate whether or not to drop rows with missing values
-        feature_store_params (dict): Dictionary containing database_name, table_name, primary_keys and description keys.
-            database_name: name of database to use for creating the feature table
-            table_name: name of feature table
-            primary_keys: string or list of columns to use as the primary key(s). Use single column (customerID) as the
-                primary key for the telco churn example.
-            description: string containing description to attribute to the feature table in the Feature Store.
-        labels_table_params (dict): Dictionary containing database_name, table_name, label_col and dbfs_path
-            database_name: name of database to use for creating the labels table
-            table_name: name of labels table
-            label_col: name of column to use as the label column (in telco churn example we rename this column to 'churn')
-            dbfs_path: DBFS path to use for the labels table (saving as a Delta table)
+        input_table (str):
+            Name of the table to use as input for creating features
+        featurizer_cfg (FeaturizerConfig):
+            Featurization config to specify label_col, ohe, cat_cols and drop_missing params
+        feature_store_table_cfg (FeatureStoreTableConfig):
+            Feature Store table config to specify database_name, table_name, primary_keys and description
+        labels_table_cfg (LabelsTableConfig):
+            Labels table config to specify database_name, table_name, label_col and dbfs_path
     """
     input_table: str
     featurizer_cfg: FeaturizerConfig
@@ -46,8 +37,6 @@ class FeatureTableCreator:
     """
     def __init__(self, cfg: FeatureTableCreatorConfig):
         self.cfg = cfg
-
-    labels_table_params: dict
 
     @staticmethod
     def setup(database_name: str, table_name: str) -> None:
@@ -107,7 +96,7 @@ class FeatureTableCreator:
         The feature table is created from the Spark DataFrame provided, dropping the label column if it exists in the
         DataFrame. The label column cannot be present in the feature table when later constructing a feature store
         training set from the feature table. The feature table will be created using the primary keys and description
-        proivided via feature_store_params.
+        proivided via feature_store_table_cfg.
 
         Parameters
         ----------
@@ -122,7 +111,7 @@ class FeatureTableCreator:
 
         # Store only features for each customerID, storing customerID, churn in separate churn_labels table
         # During model training we will use the churn_labels table to join features into
-        features_df = df.drop(self.cfg.labels_table_params['label_col'])
+        features_df = df.drop(self.cfg.labels_table_cfg.label_col)
         feature_table_name = f'{feature_store_table_cfg.database_name}.{feature_store_table_cfg.table_name}'
         _logger.info(f'Creating and writing features to feature table: {feature_table_name}')
         feature_store_utils.create_and_write_feature_table(features_df,
@@ -134,7 +123,7 @@ class FeatureTableCreator:
         """
         Method to create labels table. This table will consist of the columns primary_key, label_col
 
-        Create table using params specified in labels_table_params. Will create Delta table at dbfs_path, and further
+        Create table using params specified in labels_table_cfg. Will create Delta table at dbfs_path, and further
         create a table using this Delta location.
 
         Parameters
@@ -150,13 +139,13 @@ class FeatureTableCreator:
                                  labels_table_cfg.label_col]
         elif isinstance(feature_store_table_cfg.primary_keys, list):
             labels_table_cols = feature_store_table_cfg.primary_keys + \
-                                [self.labels_table_params['label_col']]
+                                [labels_table_cfg.label_col]
         else:
             raise RuntimeError('Feature Store table primary keys must be one of either str of list type')
 
-        labels_database_name = self.labels_table_params['database_name']
-        labels_table_name = self.labels_table_params['table_name']
-        labels_dbfs_path = self.labels_table_params['dbfs_path']
+        labels_database_name = labels_table_cfg.database_name
+        labels_table_name = labels_table_cfg.table_name
+        labels_dbfs_path = labels_table_cfg.dbfs_path
         # Create database if not exists, drop table if it already exists
         self.setup(database_name=labels_database_name, table_name=labels_table_name)
         # DataFrame of customerID/churn labels

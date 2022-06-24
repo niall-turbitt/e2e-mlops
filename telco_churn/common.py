@@ -31,6 +31,12 @@ class FeatureStoreTableConfig:
             Name of database to use for creating the feature table
         table_name :  str
             Name of feature table
+
+database_name: name of database to use for creating the feature table
+            table_name: name of feature table
+            primary_keys: string or list of columns to use as the primary key(s). Use single column (customerID) as the
+                primary key for the telco churn example.
+            description: string containing description to attribute to the feature table in the Feature Store.
     """
     database_name: str
     table_name: str
@@ -40,10 +46,18 @@ class FeatureStoreTableConfig:
 
 @dataclass
 class LabelsTableConfig:
+    """
+    Attributes:
+        database_name: name of database to use for creating the labels table
+        table_name: name of labels table
+        label_col: name of column to use as the label column (in telco churn example we rename this column to 'churn')
+        dbfs_path: DBFS path to use for the labels table (saving as a Delta table)
+    """
     database_name: str
     table_name: str
     label_col: str
     primary_keys: Union[str, List[str]] = None
+    dbfs_path: str = None
 
 
 class Workload(ABC):
