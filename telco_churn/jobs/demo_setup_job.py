@@ -16,6 +16,30 @@ _logger = get_logger()
 
 class DemoSetup(Workload):
 
+    def _get_train_experiment_id(self):
+        try:
+            return self.env_vars['model_train_experiment_id']
+        except KeyError:
+            return None
+
+    def _get_train_experiment_path(self):
+        try:
+            return self.env_vars['model_train_experiment_path']
+        except KeyError:
+            return None
+
+    def _get_deploy_experiment_id(self):
+        try:
+            return self.env_vars['model_deploy_experiment_id']
+        except KeyError:
+            return None
+
+    def _get_deploy_experiment_path(self):
+        try:
+            return self.env_vars['model_deploy_experiment_path']
+        except KeyError:
+            return None
+
     @staticmethod
     def _check_mlflow_model_registry_exists(model_name) -> bool:
         """
@@ -71,17 +95,10 @@ class DemoSetup(Workload):
         -------
         Dictionary indicating whether train and deploy MLflow experiments currently exist
         """
-        try:
-            train_experiment_id = self.env_vars['model_train_experiment_id']
-        except KeyError:
-            train_experiment_id = None
-        try:
-            train_experiment_path = self.env_vars['model_train_experiment_path']
-        except KeyError:
-            train_experiment_path = None
-
-        deploy_experiment_id = self.env_vars['model_deploy_experiment_id']
-        deploy_experiment_path = self.env_vars['model_deploy_experiment_path']
+        train_experiment_id = self._get_train_experiment_id()
+        train_experiment_path = self._get_train_experiment_path()
+        deploy_experiment_id = self._get_deploy_experiment_id()
+        deploy_experiment_path = self._get_deploy_experiment_path()
 
         def check_by_experiment_id(experiment_id):
             try:
