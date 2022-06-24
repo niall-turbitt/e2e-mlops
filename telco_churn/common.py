@@ -26,6 +26,13 @@ class MLflowTrackingConfig:
 
 @dataclass
 class FeatureStoreTableConfig:
+    """
+    database_name :  str
+            Name of database to use for creating the feature table
+        table_name :  str
+            Name of feature table
+    """
+    database_name: str
     table_name: str
     primary_keys: Union[str, List[str]]
     description: str = None
@@ -33,6 +40,7 @@ class FeatureStoreTableConfig:
 
 @dataclass
 class LabelsTableConfig:
+    database_name: str
     table_name: str
     label_col: str
     primary_keys: Union[str, List[str]] = None

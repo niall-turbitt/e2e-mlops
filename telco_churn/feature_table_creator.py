@@ -3,6 +3,8 @@ from dataclasses import dataclass
 import pyspark.sql.dataframe
 
 from telco_churn import featurize
+from telco_churn.common import FeatureStoreTableConfig, LabelsTableConfig
+from telco_churn.featurize import FeaturizerConfig
 from telco_churn.utils import feature_store_utils
 from telco_churn.utils.get_spark import spark
 from telco_churn.utils.logger_utils import get_logger
@@ -11,13 +13,10 @@ _logger = get_logger()
 
 
 @dataclass
-class FeatureTableCreator:
+class FeatureTableCreatorConfig:
     """
-    Class to execute a pipeline to create a Feature Store table, and separate labels table
-
     Attributes:
-        data_ingest_params (dict): Dictionary containing input_table key. The value for input_table should be the name
-            of the table to use as input for creating features
+        input_table (str): Name of the table to use as input for creating features
         data_prep_params (dict): Dictionary containing label_col, ohe, cat_cols (optional) and drop_missing keys.
             label_col: name of column from input_table to use as the label column
             ohe: boolean to indicate whether or not to one hot encode categorical columns
@@ -36,8 +35,18 @@ class FeatureTableCreator:
             dbfs_path: DBFS path to use for the labels table (saving as a Delta table)
     """
     input_table: str
-    data_prep_params: dict
-    feature_store_params: dict
+    featurizer_cfg: FeaturizerConfig
+    feature_store_table_cfg: FeatureStoreTableConfig
+    labels_table_cfg: LabelsTableConfig
+
+
+class FeatureTableCreator:
+    """
+    Class to execute a pipeline to create a Feature Store table, and separate labels table
+    """
+    def __init__(self, cfg: FeatureTableCreatorConfig):
+        self.cfg = cfg
+
     labels_table_params: dict
 
     @staticmethod
@@ -67,7 +76,7 @@ class FeatureTableCreator:
         pyspark.sql.DataFrame
             Input Spark DataFrame
         """
-        return spark.table(self.data_ingest_params['input_table'])
+        return spark.table(self.cfg.input_table)
 
     def run_data_prep(self, input_df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
         """
@@ -84,14 +93,12 @@ class FeatureTableCreator:
         pyspark.sql.DataFrame
             Processed Spark DataFrame containing features
         """
-        featurizer = featurize.Featurizer(**self.data_prep_params)
+        featurizer = featurize.Featurizer(self.cfg.featurizer_cfg)
         proc_df = featurizer.run(input_df)
 
         return proc_df
 
-    def run_feature_table_create(self, 
-                                 df: pyspark.sql.DataFrame,
-                                 database_name: str, table_name: str) -> None:
+    def run_feature_table_create(self, df: pyspark.sql.DataFrame) -> None:
         """
         Method to create feature table in Databricks Feature Store. When run, this method will create from scratch the
         feature table. As such, we first create (if it doesn't exist) the database specified, and drop the table if it
@@ -106,23 +113,22 @@ class FeatureTableCreator:
         ----------
         df : pyspark.sql.DataFrame
             Spark DataFrame from which to create the feature table.
-        database_name :  str
-            Name of database to use for creating the feature table
-        table_name :  str
-            Name of feature table
         """
+        feature_store_table_cfg = self.cfg.feature_store_table_cfg
+
         # Create database if not exists, drop table if it already exists
-        self.setup(database_name=database_name, table_name=table_name)
+        self.setup(database_name=feature_store_table_cfg.database_name,
+                   table_name=feature_store_table_cfg.table_name)
 
         # Store only features for each customerID, storing customerID, churn in separate churn_labels table
         # During model training we will use the churn_labels table to join features into
-        features_df = df.drop(self.labels_table_params['label_col'])
-        feature_table_name = f'{database_name}.{table_name}'
+        features_df = df.drop(self.cfg.labels_table_params['label_col'])
+        feature_table_name = f'{feature_store_table_cfg.database_name}.{feature_store_table_cfg.table_name}'
         _logger.info(f'Creating and writing features to feature table: {feature_table_name}')
         feature_store_utils.create_and_write_feature_table(features_df,
                                                            feature_table_name,
-                                                           primary_keys=self.feature_store_params['primary_keys'],
-                                                           description=self.feature_store_params['description'])
+                                                           primary_keys=feature_store_table_cfg.primary_keys,
+                                                           description=feature_store_table_cfg.description)
 
     def run_labels_table_create(self, df: pyspark.sql.DataFrame) -> None:
         """
@@ -136,15 +142,17 @@ class FeatureTableCreator:
         df : pyspark.sql.DataFrame
             Spark DataFrame containing primary keys column and label column
         """
-        if isinstance(self.feature_store_params['primary_keys'], str):
-            labels_table_cols = [self.feature_store_params['primary_keys'],
-                                 self.labels_table_params['label_col']]
-        elif isinstance(self.feature_store_params['primary_keys'], list):
-            labels_table_cols = self.feature_store_params['primary_keys'] + \
+        feature_store_table_cfg = self.cfg.feature_store_table_cfg
+        labels_table_cfg = self.cfg.labels_table_cfg
+
+        if isinstance(feature_store_table_cfg.primary_keys, str):
+            labels_table_cols = [feature_store_table_cfg.primary_keys,
+                                 labels_table_cfg.label_col]
+        elif isinstance(feature_store_table_cfg.primary_keys, list):
+            labels_table_cols = feature_store_table_cfg.primary_keys + \
                                 [self.labels_table_params['label_col']]
         else:
-            raise RuntimeError(
-                f'{self.feature_store_params["primary_keys"]} must be of either str of list type')
+            raise RuntimeError('Feature Store table primary keys must be one of either str of list type')
 
         labels_database_name = self.labels_table_params['database_name']
         labels_table_name = self.labels_table_params['table_name']
@@ -170,9 +178,7 @@ class FeatureTableCreator:
         proc_df = self.run_data_prep(input_df)
 
         _logger.info('==========Create Feature Table==========')
-        fs_database_name = self.feature_store_params['database_name']
-        fs_table_name = self.feature_store_params['table_name']
-        self.run_feature_table_create(proc_df, database_name=fs_database_name, table_name=fs_table_name)
+        self.run_feature_table_create(proc_df)
 
         _logger.info('==========Create Labels Table==========')
         self.run_labels_table_create(proc_df)
