@@ -255,30 +255,15 @@ Multiple users also can use the same cluster for development. Libraries will be 
 
 ## Working with notebooks and Repos
 
-To start working with your notebooks from a Repos, do the following steps:
+To start working with your notebooks from [Repos](https://docs.databricks.com/repos/index.html), do the following steps:
 
 1. Add your git provider token to your user settings
 2. Add your repository to Repos. This could be done via UI, or via CLI command below:
 ```bash
 databricks repos create --url <your repo URL> --provider <your-provider>
 ```
-This command will create your personal repository under `/Repos/<username>/dbx_dotenv_sample`.
+This command will create your personal repository under `/Repos/<username>/telco_churn`.
 3. To set up the CI/CD pipeline with the notebook, create a separate `Staging` repo:
 ```bash
-databricks repos create --url <your repo URL> --provider <your-provider> --path /Repos/Staging/dbx_dotenv_sample
-```
-
-## CI/CD pipeline settings
-
-Please set the following secrets or environment variables for your CI provider:
-- `DATABRICKS_HOST`
-- `DATABRICKS_TOKEN`
-
-## Testing and releasing via CI pipeline
-
-- To trigger the CI pipeline, simply push your code to the repository. If CI provider is correctly set, it shall trigger the general testing pipeline
-- To trigger the release pipeline, get the current version from the `dbx_dotenv_sample/__init__.py` file and tag the current code version:
-```
-git tag -a v<your-project-version> -m "Release tag for version <your-project-version>"
-git push origin --tags
+databricks repos create --url <your repo URL> --provider <your-provider> --path /Repos/Staging/telco_churn
 ```

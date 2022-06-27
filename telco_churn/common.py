@@ -214,3 +214,18 @@ class Workload(ABC):
         :return:
         """
         pass
+
+
+def get_dbutils(
+    spark: SparkSession,
+):  # please note that this function is used in mocking by its name
+    try:
+        from pyspark.dbutils import DBUtils  # noqa
+
+        if "dbutils" not in locals():
+            utils = DBUtils(spark)
+            return utils
+        else:
+            return locals().get("dbutils")
+    except ImportError:
+        return None
