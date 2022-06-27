@@ -67,7 +67,7 @@ The following outlines the workflow to demo the repo.
 
 ### Workflow
 
-1. **Run `initial-model-train-register` multitask job**
+1. **Run `telco-churn-initial-model-train-register` multitask job**
 
     - To demonstrate a CICD workflow, we want to start from a “steady state” where there is a current model in production. 
       As such, we will manually trigger a multitask job to do the following steps:
@@ -79,16 +79,16 @@ The following outlines the workflow to demo the repo.
 
     - Outlined below are the detailed steps to do this:
 
-        1. Run the multitask `initial-model-train-register` job via an automated job cluster 
+        1. Run the multitask `telco-churn-initial-model-train-register` job via an automated job cluster 
            (NOTE: multitask jobs can only be run via `dbx deploy; dbx launch` currently).
            ```
-           dbx deploy --jobs=initial-model-train-register -–environment=prod --files-only
-           dbx launch --job=initial-model-train-register -–environment=prod --as-run-submit --trace
+           dbx deploy --jobs=telco-churn-initial-model-train-register -–environment=prod --files-only
+           dbx launch --job=telco-churn-initial-model-train-register -–environment=prod --as-run-submit --trace
            ```
            See the Limitations section below regarding running multitask jobs. In order to reduce cluster start up time
            you may want to consider using a [Databricks pool](https://docs.databricks.com/clusters/instance-pools/index.html), 
            and specify this pool ID in [`conf/deployment.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/deployment.yml).
-    - `initial-model-train-register` tasks:
+    - `telco-churn-initial-model-train-register` tasks:
         1. Demo setup task steps ([`demo-setup`](https://github.com/niall-turbitt/e2e-mlops/blob/main/telco_churn/jobs/demo_setup_job.py))
             1. Delete Model Registry model if exists (archive any existing models).
             1. Delete MLflow experiment if exists.
@@ -113,7 +113,7 @@ The following outlines the workflow to demo the repo.
 
 * On pull request the following steps are triggered in the GitHub Actions workflow:
     1. Trigger unit tests 
-    1. Trigger pre_model_train_integration tests
+    1. Trigger integration tests
 
 
 3. **Cut release**
@@ -126,20 +126,20 @@ The following outlines the workflow to demo the repo.
 
     - On pushing this the following steps are triggered in the [`onrelease.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/.github/workflows/onrelease.yml) GitHub Actions workflow:
         1. Trigger unit tests
-        1. Deploy `model-train` job
-        1. Deploy `model-deployment` job
-        1. Deploy `model-inference-batch` job
+        1. Deploy `telco-churn-model-train` job
+        1. Deploy `telco-churn-model-deployment` job
+        1. Deploy `telco-churn-model-inference-batch` job
             - These jobs will now all be present in the specified workspace, and visible under the [Workflows](https://docs.databricks.com/data-engineering/jobs/index.html) tab.
     
 
-4. **Run `model-train` job**
+4. **Run `telco-churn-model-train` job**
     - Manually trigger job via UI
-        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `model-train` job will be present.
-        - Click into model-train and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration.
+        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `telco-churn-model-train` job will be present.
+        - Click into telco-churn-model-train and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration.
     - Alternatively you can trigger the job using the Databricks CLI:
       - `databricks jobs run-now –job-id JOB_ID`
        
-    - Model train job steps (`model-train`)
+    - Model train job steps (`telco-churn-model-train`)
         1. Train improved “new” classifier (RandomForestClassifier - `max_depth=8`)
         1. Register the model. Model version 2 will be registered to stage=None upon successful model training.
         1. **Manual Step**: MLflow Model Registry UI promotion to stage='Staging'
@@ -151,14 +151,14 @@ The following outlines the workflow to demo the repo.
     - Version 2 (Staging): RandomForestClassifier (`max_depth=8`)
 
 
-5. **Run `model-deployment` job (Continuous Deployment)**
+5. **Run `telco-churn-model-deployment` job (Continuous Deployment)**
     - Manually trigger job via UI
-        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `model-deployment` job will be present.
-        - Click into model-deployment and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration. 
+        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `telco-churn-model-deployment` job will be present.
+        - Click into telco-churn-model-deployment and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration. 
     - Alternatively you can trigger the job using the Databricks CLI:
       - `databricks jobs run-now –job-id JOB_ID`
     
-    - Model deployment job steps  (`model-deployment`)
+    - Model deployment job steps  (`telco-churn-model-deployment`)
         1. Compare new “candidate model” in `stage='Staging'` versus current Production model in `stage='Production'`.
         1. Comparison criteria set through [`model_deployment.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_deployment.yml)
             1. Compute predictions using both models against a specified reference dataset
@@ -166,14 +166,14 @@ The following outlines the workflow to demo the repo.
             1. If Staging model performs worse than Production model, archive Staging model
             
 
-6. **Run `model-inference-batch` job** 
+6. **Run `telco-churn-model-inference-batch` job** 
     - Manually trigger job via UI
-        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `model-inference-batch` job will be present.
-        - Click into model-inference-batch and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration.
+        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `telco-churn-model-inference-batch` job will be present.
+        - Click into telco-churn-model-inference-batch and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration.
     - Alternatively you can trigger the job using the Databricks CLI:
       - `databricks jobs run-now –job-id JOB_ID`
 
-    - Batch model inference steps  (`model-inference-batch`)
+    - Batch model inference steps  (`telco-churn-model-inference-batch`)
         1. Load model from stage=Production in Model Registry
             - **NOTE:** model must have been logged to MLflow using the Feature Store API
         1. Use primary keys in specified inference input data to load features from feature store
@@ -181,13 +181,6 @@ The following outlines the workflow to demo the repo.
         1. Write predictions to specified Delta path
 
 ## Limitations
-- Pipelines cannot be run using dbx execute
-    - We rely on passing global variables via spark_env_vars for the respective cluster configs in the 
-      [`conf/deployment.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/deployment.yml) file.
-    - These variables cannot be passed to a cluster which is already running, i.e an interactive cluster. 
-      As such, the pipelines in the repo cannot be run using `dbx execute` and can currently only be executed using `dbx deploy; dbx launch`.
-    - For demo purposes, we recommend using a [Databricks pool](https://docs.databricks.com/clusters/instance-pools/index.html) 
-      from which instances can be acquired when launching a job to reduce cluster start up time.
 - Multitask jobs running against the same cluster
     - The pipeline initial-model-train-register is a [multitask job](https://docs.databricks.com/data-engineering/jobs/index.html) 
       which stitches together demo setup, feature store creation and model train pipelines. 
@@ -215,51 +208,76 @@ pip install -e .
 
 ### Testing
 
-For local unit testing, please use `pytest`:
+## Running unit tests
+
+For unit testing, please use `pytest`:
 ```
 pytest tests/unit --cov
 ```
 
+Please check the directory `tests/unit` for more details on how to use unit tests.
+In the `tests/unit/conftest.py` you'll also find useful testing primitives, such as local Spark instance with Delta support, local MLflow and DBUtils fixture.
+
+## Running integration tests
+
+There are two options for running integration tests:
+
+- On an interactive cluster via `dbx execute`
+- On a job cluster via `dbx launch`
+
+For quicker startup of the job clusters we recommend using instance pools ([AWS](https://docs.databricks.com/clusters/instance-pools/index.html), [Azure](https://docs.microsoft.com/en-us/azure/databricks/clusters/instance-pools/), [GCP](https://docs.gcp.databricks.com/clusters/instance-pools/index.html)).
+
+For an integration test on interactive cluster, use the following command:
+```
+dbx execute --cluster-name=<name of interactive cluster> --job=<name of the job to test>
+```
+
 For a test on an automated job cluster, deploy the job files and then launch:
 ```
-dbx deploy --jobs=sample-integration-test --files-only
-dbx launch --job=sample-integration-test --as-run-submit --trace
+dbx deploy --jobs=<name of the job to test> --files-only
+dbx launch --job=<name of the job to test> --as-run-submit --trace
 ```
 
-### Deployment for Run Submit API
+Please note that for testing we recommend using [jobless deployments](https://dbx.readthedocs.io/en/latest/run_submit.html), so you won't affect existing job definitions.
 
-To deploy only the files and not to override the job definitions, do the following:
+## Interactive execution and development on Databricks clusters
 
+1. `dbx` expects that cluster for interactive execution supports `%pip` and `%conda` magic [commands](https://docs.databricks.com/libraries/notebooks-python-libraries.html).
+2. Please configure your job in `conf/deployment.yml` file.
+2. To execute the code interactively, provide either `--cluster-id` or `--cluster-name`.
 ```bash
-dbx deploy --files-only
+dbx execute \
+    --cluster-name="<some-cluster-name>" \
+    --job=job-name
 ```
 
-To launch the file-based deployment:
-```
-dbx launch --as-run-submit --trace
-```
+Multiple users also can use the same cluster for development. Libraries will be isolated per each execution context.
 
-This type of deployment is convenient for working in different branches, not to affect the main job definition.
+## Working with notebooks and Repos
 
-### Deployment for Run Now API
+To start working with your notebooks from a Repos, do the following steps:
 
-To deploy files and update the job definitions:
-
+1. Add your git provider token to your user settings
+2. Add your repository to Repos. This could be done via UI, or via CLI command below:
 ```bash
-dbx deploy
+databricks repos create --url <your repo URL> --provider <your-provider>
+```
+This command will create your personal repository under `/Repos/<username>/dbx_dotenv_sample`.
+3. To set up the CI/CD pipeline with the notebook, create a separate `Staging` repo:
+```bash
+databricks repos create --url <your repo URL> --provider <your-provider> --path /Repos/Staging/dbx_dotenv_sample
 ```
 
-To launch the file-based deployment:
-```
-dbx launch --job=<job-name>
-```
+## CI/CD pipeline settings
 
-This type of deployment shall be mainly used from the CI pipeline in automated way during new release.
+Please set the following secrets or environment variables for your CI provider:
+- `DATABRICKS_HOST`
+- `DATABRICKS_TOKEN`
 
-### Testing and releasing via CI pipeline
+## Testing and releasing via CI pipeline
 
 - To trigger the CI pipeline, simply push your code to the repository. If CI provider is correctly set, it shall trigger the general testing pipeline
-- To trigger the release pipeline, get the current version from the `telco_churn/__init__.py` file and tag the current code version:
+- To trigger the release pipeline, get the current version from the `dbx_dotenv_sample/__init__.py` file and tag the current code version:
 ```
 git tag -a v<your-project-version> -m "Release tag for version <your-project-version>"
 git push origin --tags
