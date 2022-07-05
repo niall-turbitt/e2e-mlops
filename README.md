@@ -82,8 +82,8 @@ The following outlines the workflow to demo the repo.
         1. Run the multitask `telco-churn-initial-model-train-register` job via an automated job cluster 
            (NOTE: multitask jobs can only be run via `dbx deploy; dbx launch` currently).
            ```
-           dbx deploy --jobs=telco-churn-initial-model-train-register -–environment=prod --files-only
-           dbx launch --job=telco-churn-initial-model-train-register -–environment=prod --as-run-submit --trace
+           dbx deploy --jobs=telco-churn-initial-model-train-register --environment=prod --files-only
+           dbx launch --job=telco-churn-initial-model-train-register --environment=prod --as-run-submit --trace
            ```
            See the Limitations section below regarding running multitask jobs. In order to reduce cluster start up time
            you may want to consider using a [Databricks pool](https://docs.databricks.com/clusters/instance-pools/index.html), 
