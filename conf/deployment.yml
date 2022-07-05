@@ -4,11 +4,11 @@ custom:
   # For demo purposes we will use a warm pool to acquire instances from
   default-cluster-spec: &default-cluster-spec
     spark_version: '11.0.x-cpu-ml-scala2.12'
-#    node_type_id: 'i3.xlarge' # node_type_id and driver_node_type_id cannot be supplied when an instance 'pool ID is provided
-#    driver_node_type_id: 'i3.xlarge'
+    node_type_id: 'i3.xlarge' # node_type_id and driver_node_type_id cannot be supplied when an instance 'pool ID is provided
+    driver_node_type_id: 'i3.xlarge'
     num_workers: 1
-    driver_instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
-    instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
+    # driver_instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
+    # instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
 
   dev-cluster-config: &dev-cluster-config
     new_cluster:
