@@ -1,6 +1,6 @@
 """
 Module containing common data classes used throughout different pipelines, in addition to Workload class which is
-extended to run jobs/tasks.
+extended to run pipelines/tasks.
 """
 import os
 import sys
@@ -88,7 +88,7 @@ class LabelsTableConfig:
 
 class Workload(ABC):
     """
-    This is an abstract class that provides handy interfaces to implement workloads (e.g. jobs or job tasks).
+    This is an abstract class that provides handy interfaces to implement workloads (e.g. pipelines or job tasks).
     Create a child from this class and implement the abstract launch method.
     Class provides access to the following useful objects:
     * self.spark is a SparkSession
