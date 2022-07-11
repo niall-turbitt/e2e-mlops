@@ -77,7 +77,7 @@ environments:
           python_file: 'file://tests/integration/sample_test.py'
           parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
                        '--env', 'file:fuse://conf/environment_variables/.dev.env',
-                       '--conf-file', 'file:fuse://conf/pipeline_configs/sample_test.yml' ]
+                       '--conf-file', 'file:fuse://conf/pipeline_configs/sample_test.yml']
 
   staging:
     strict_path_adjustment_policy: true
@@ -88,7 +88,7 @@ environments:
         spark_python_task:
           python_file: 'file://tests/integration/sample_test.py'
           parameters: ['--env', 'file:fuse://conf/environment_variables/.staging.env',
-                       '--conf-file', 'file:fuse://conf/pipeline_configs/sample_test.yml' ]
+                       '--conf-file', 'file:fuse://conf/pipeline_configs/sample_test.yml']
 
   prod:
     strict_path_adjustment_policy: true
@@ -99,7 +99,7 @@ environments:
           python_file: 'file://telco_churn/pipelines/demo_setup_job.py'
           parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
                        '--env', 'file:fuse://conf/environment_variables/.prod.env',
-                       '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml' ]
+                       '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
       - name: 'telco-churn-initial-model-train-register'
         tasks:
           - task_key: 'demo-setup'
@@ -109,7 +109,7 @@ environments:
               python_file: 'file://telco_churn/pipelines/demo_setup_job.py'
               parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
                            '--env', 'file:fuse://conf/environment_variables/.prod.env',
-                           '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml' ]
+                           '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
           - task_key: 'feature-table-creation'
             <<: *prod-cluster-config
             depends_on:
