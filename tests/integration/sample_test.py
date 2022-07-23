@@ -1,6 +1,6 @@
 import unittest
 
-from telco_churn.pipelines.sample_job import SampleJob
+from telco_churn.pipelines.sample_test_job import SampleJob
 from uuid import uuid4
 from pyspark.dbutils import DBUtils  # noqa
 
