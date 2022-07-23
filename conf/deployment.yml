@@ -36,47 +36,47 @@ environments:
         <<: *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/demo_setup_job.py'
-          parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                       '--env', 'file:fuse://conf/environment_variables/.dev.env',
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
       - name: 'telco-churn-feature-table-creation'
         <<: *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/feature_table_creator_job.py'
-          parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                       '--env', 'file:fuse://conf/environment_variables/.dev.env',
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/feature_table_creation.yml']
       - name: 'telco-churn-model-train'
         <<:
           - *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/model_train_job.py'
-          parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                       '--env', 'file:fuse://conf/environment_variables/.dev.env',
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_train.yml']
       - name: 'telco-churn-model-deployment'
         <<:
           - *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/model_deployment_job.py'
-          parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                       '--env', 'file:fuse://conf/environment_variables/.dev.env',
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_deployment.yml']
       - name: 'telco-churn-model-inference-batch'
         <<:
           - *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/model_inference_job.py'
-          parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                       '--env', 'file:fuse://conf/environment_variables/.dev.env',
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_inference_batch.yml']
       - name: 'telco-churn-sample-integration-test'
         <<:
           - *dev-cluster-config
         spark_python_task:
           python_file: 'file://tests/integration/sample_test.py'
-          parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                       '--env', 'file:fuse://conf/environment_variables/.dev.env',
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/sample_test.yml']
 
   staging:
@@ -87,7 +87,7 @@ environments:
           - *staging-cluster-config
         spark_python_task:
           python_file: 'file://tests/integration/sample_test.py'
-          parameters: ['--env', 'file:fuse://conf/environment_variables/.staging.env',
+          parameters: ['--env', 'file:fuse://conf/staging/.staging.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/sample_test.yml']
 
   prod:
@@ -97,8 +97,8 @@ environments:
         <<: *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/demo_setup_job.py'
-          parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                       '--env', 'file:fuse://conf/environment_variables/.prod.env',
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/prod/.prod.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
       - name: 'telco-churn-initial-model-train-register'
         tasks:
@@ -107,8 +107,8 @@ environments:
               - *prod-cluster-config
             spark_python_task:
               python_file: 'file://telco_churn/pipelines/demo_setup_job.py'
-              parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                           '--env', 'file:fuse://conf/environment_variables/.prod.env',
+              parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                           '--env', 'file:fuse://conf/prod/.prod.env',
                            '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
           - task_key: 'feature-table-creation'
             <<: *prod-cluster-config
@@ -116,8 +116,8 @@ environments:
               - task_key: 'demo-setup'
             spark_python_task:
               python_file: 'file://telco_churn/pipelines/feature_table_creator_job.py'
-              parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                           '--env', 'file:fuse://conf/environment_variables/.prod.env',
+              parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                           '--env', 'file:fuse://conf/prod/.prod.env',
                            '--conf-file', 'file:fuse://conf/pipeline_configs/feature_table_creation.yml']
           - task_key: 'model-train'
             <<: *prod-cluster-config
@@ -126,30 +126,30 @@ environments:
               - task_key: 'feature-table-creation'
             spark_python_task:
               python_file: 'file://telco_churn/pipelines/model_train_job.py'
-              parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                           '--env', 'file:fuse://conf/environment_variables/.prod.env',
+              parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                           '--env', 'file:fuse://conf/prod/.prod.env',
                            '--conf-file', 'file:fuse://conf/pipeline_configs/model_train.yml']
       - name: 'telco-churn-model-train'
         <<:
           - *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/model_train_job.py'
-          parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                       '--env', 'file:fuse://conf/environment_variables/.prod.env',
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/prod/.prod.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_train.yml']
       - name: 'telco-churn-model-deployment'
         <<:
           - *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/model_deployment_job.py'
-          parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                       '--env', 'file:fuse://conf/environment_variables/.prod.env',
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/prod/.prod.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_deployment.yml']
       - name: 'telco-churn-model-inference-batch'
         <<:
           - *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/model_inference_job.py'
-          parameters: ['--base-data-params', 'file:fuse://conf/environment_variables/.base_data_params.env',
-                       '--env', 'file:fuse://conf/environment_variables/.prod.env',
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/prod/.prod.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_inference_batch.yml']
