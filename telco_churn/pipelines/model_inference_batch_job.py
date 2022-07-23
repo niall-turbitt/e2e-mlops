@@ -16,32 +16,28 @@ class ModelInferenceJob(Workload):
 
         return model_uri
 
-    def _get_inference_data(self) -> str:
+    def _get_input_table_name(self) -> str:
         """
-        Get the name of the table to perform inference on
+        Get the name of the input table to perform inference on
         """
-        inference_database_name = self.env_vars['inference_database_name']
-        inference_table_name = self.env_vars['inference_table_name']
-        return f'{inference_database_name}.{inference_table_name}'
+        return self.conf['data_input']['table_name']
 
     def _get_predictions_output_params(self) -> Dict:
         """
         Get a dictionary of delta_path, table_name, mode key-values to pass to run_and_write_batch of ModelInference
         """
         predictions_table_database_name = self.env_vars['predictions_table_database_name']
-        predictions_table_name = self.env_vars['predictions_table_name']
-        output_table_name = f'{predictions_table_database_name}.{predictions_table_name}'
+        predictions_table_name = f'{predictions_table_database_name}.{self.env_vars["predictions_table_name"]}'
 
-        return {'delta_path': self.env_vars['predictions_table_dbfs_path'],
-                'table_name': output_table_name,
-                'mode': self.conf['data_output']['mode']}
+        return predictions_table_name
 
     def launch(self):
         _logger.info('Launching Batch ModelInferenceJob job')
-        _logger.info(f'Running model-inference-batch in {self.env_vars["DEPLOYMENT_ENV"]} environment')
+        _logger.info(f'Running model-inference-batch in {self.env_vars["env"]} environment')
         ModelInference(model_uri=self._get_model_uri(),
-                       inference_data=self._get_inference_data())\
-            .run_and_write_batch(**self._get_predictions_output_params())
+                       input_table_name=self._get_input_table_name(),
+                       output_table_name=self._get_predictions_output_params())\
+            .run_and_write_batch(mode=self.conf['data_output']['mode'])
         _logger.info('Batch ModelInferenceJob job finished')
 
 
