@@ -40,7 +40,7 @@ class ModelTrainJob(Workload):
 
     def launch(self):
         _logger.info('Launching ModelTrainJob job')
-        _logger.info(f'Running model-train pipeline in {self.env_vars["DEPLOYMENT_ENV"]} environment')
+        _logger.info(f'Running model-train pipeline in {self.env_vars["env"]} environment')
         cfg = ModelTrainConfig(mlflow_tracking_cfg=self._get_mlflow_tracking_cfg(),
                                feature_store_table_cfg=self._get_feature_store_table_cfg(),
                                labels_table_cfg=self._get_labels_table_cfg(),
