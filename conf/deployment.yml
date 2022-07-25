@@ -3,15 +3,15 @@ custom:
   # Cluster configs for each environment
   default-cluster-spec: &default-cluster-spec
     spark_version: '11.0.x-cpu-ml-scala2.12'
-    node_type_id: 'i3.xlarge'
-    driver_node_type_id: 'i3.xlarge'
+#    node_type_id: 'i3.xlarge'
+#    driver_node_type_id: 'i3.xlarge'
     num_workers: 1
     # To reduce start up time for each job, it is advisable to use a cluster pool. To do so involves supplying the following
     # two fields with a pool_id to acquire both the driver and instances from.
     # If driver_instance_pool_id and instance_pool_id are set, both node_type_id and driver_node_type_id CANNOT be supplied.
     # As such, if providing a pool_id for driver and worker instances, please ensure that node_type_id and driver_node_type_id are not present
-#    driver_instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
-#    instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
+    driver_instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
+    instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
 
   dev-cluster-config: &dev-cluster-config
     new_cluster:
@@ -32,21 +32,21 @@ environments:
   dev:
     strict_path_adjustment_policy: true
     jobs:
-      - name: 'telco-churn-demo-setup'
+      - name: 'DEV-telco-churn-demo-setup'
         <<: *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/demo_setup_job.py'
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
-      - name: 'telco-churn-feature-table-creation'
+      - name: 'DEV-telco-churn-feature-table-creation'
         <<: *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/feature_table_creator_job.py'
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/feature_table_creator.yml']
-      - name: 'telco-churn-model-train'
+      - name: 'DEV-telco-churn-model-train'
         <<:
           - *dev-cluster-config
         spark_python_task:
@@ -54,7 +54,7 @@ environments:
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_train.yml']
-      - name: 'telco-churn-model-deployment'
+      - name: 'DEV-telco-churn-model-deployment'
         <<:
           - *dev-cluster-config
         spark_python_task:
@@ -62,7 +62,7 @@ environments:
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_deployment.yml']
-      - name: 'telco-churn-model-inference-batch'
+      - name: 'DEV-telco-churn-model-inference-batch'
         <<:
           - *dev-cluster-config
         spark_python_task:
@@ -70,7 +70,7 @@ environments:
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_inference_batch.yml']
-      - name: 'telco-churn-sample-integration-test'
+      - name: 'DEV-telco-churn-sample-integration-test'
         <<:
           - *dev-cluster-config
         spark_python_task:
@@ -82,7 +82,7 @@ environments:
   staging:
     strict_path_adjustment_policy: true
     jobs:
-      - name: 'telco-churn-sample-integration-test'
+      - name: 'STAGING-telco-churn-sample-integration-test'
         <<:
           - *staging-cluster-config
         spark_python_task:
@@ -93,14 +93,14 @@ environments:
   prod:
     strict_path_adjustment_policy: true
     jobs:
-      - name: 'telco-churn-demo-setup'
+      - name: 'PROD-telco-churn-demo-setup'
         <<: *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/demo_setup_job.py'
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/prod/.prod.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
-      - name: 'telco-churn-initial-model-train-register'
+      - name: 'PROD-telco-churn-initial-model-train-register'
         tasks:
           - task_key: 'demo-setup'
             <<:
@@ -129,7 +129,7 @@ environments:
               parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                            '--env', 'file:fuse://conf/prod/.prod.env',
                            '--conf-file', 'file:fuse://conf/pipeline_configs/model_train.yml']
-      - name: 'telco-churn-model-train'
+      - name: 'PROD-telco-churn-model-train'
         <<:
           - *prod-cluster-config
         spark_python_task:
@@ -137,7 +137,7 @@ environments:
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/prod/.prod.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_train.yml']
-      - name: 'telco-churn-model-deployment'
+      - name: 'PROD-telco-churn-model-deployment'
         <<:
           - *prod-cluster-config
         spark_python_task:
@@ -145,7 +145,7 @@ environments:
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/prod/.prod.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_deployment.yml']
-      - name: 'telco-churn-model-inference-batch'
+      - name: 'PROD-telco-churn-model-inference-batch'
         <<:
           - *prod-cluster-config
         spark_python_task:
