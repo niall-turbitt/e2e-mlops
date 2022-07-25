@@ -42,7 +42,7 @@ env_vars = load_and_set_env_vars(env=dbutils.widgets.get('env'))
 
 # COMMAND ----------
 
-# DBTITLE 1,Pipeline Class
+# DBTITLE 1,Pipeline Config
 # Fetch model_uri
 model_name = env_vars['model_name']
 model_registry_stage = pipeline_config['mlflow_params']['model_registry_stage']
@@ -58,12 +58,12 @@ predictions_table_database_name = env_vars['predictions_table_database_name']
 predictions_table_name = f'{predictions_table_database_name}.{env_vars["predictions_table_name"]}'
 print(f'predictions_table_name: {predictions_table_name}')
 
+# COMMAND ----------
+
+# DBTITLE 1,Execute Pipeline
 # Instantiate model inference pipeline
 model_inference_pipeline = ModelInference(model_uri=model_uri,
                                           input_table_name=input_table_name,
                                           output_table_name=predictions_table_name)
 
-# COMMAND ----------
-
-# DBTITLE 1,Execute Pipeline
 model_inference_pipeline.run_and_write_batch(mode=pipeline_config['data_output']['mode'])

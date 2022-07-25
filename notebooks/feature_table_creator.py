@@ -42,7 +42,7 @@ env_vars = load_and_set_env_vars(env=dbutils.widgets.get('env'))
 
 # COMMAND ----------
 
-# DBTITLE 1,Pipeline Class
+# DBTITLE 1,Pipeline Config
 # Set FeaturizerConfig - data preparation config
 featurizer_cfg = FeaturizerConfig(**pipeline_config['data_prep_params'])
 
@@ -64,11 +64,9 @@ cfg = FeatureTableCreatorConfig(input_table=pipeline_config['input_table'],
                                 feature_store_table_cfg=feature_store_table_cfg,
                                 labels_table_cfg=labels_table_cfg)
 
-
-# Instantiate pipeline
-feature_table_creator_pipeline = FeatureTableCreator(cfg)
-
 # COMMAND ----------
 
 # DBTITLE 1,Execute Pipeline
+# Instantiate pipeline
+feature_table_creator_pipeline = FeatureTableCreator(cfg)
 feature_table_creator_pipeline.run()

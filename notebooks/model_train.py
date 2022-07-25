@@ -42,7 +42,7 @@ env_vars = load_and_set_env_vars(env=dbutils.widgets.get('env'))
 
 # COMMAND ----------
 
-# DBTITLE 1,Pipeline Class
+# DBTITLE 1,Pipeline Config
 # Set MLflowTrackingConfig
 mlflow_tracking_cfg = MLflowTrackingConfig(run_name=pipeline_config['mlflow_params']['run_name'],
                                            experiment_path=env_vars['model_train_experiment_path'],
@@ -75,10 +75,9 @@ cfg = ModelTrainConfig(mlflow_tracking_cfg=mlflow_tracking_cfg,
                        env_vars=env_vars        # Track env_vars to mlflow
                       )
 
-# Instantiate pipeline
-model_train_pipeline = ModelTrain(cfg)
-
 # COMMAND ----------
 
 # DBTITLE 1,Execute Pipeline
+# Instantiate pipeline
+model_train_pipeline = ModelTrain(cfg)
 model_train_pipeline.run()

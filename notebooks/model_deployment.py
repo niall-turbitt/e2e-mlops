@@ -56,7 +56,7 @@ env_vars = load_and_set_env_vars(env=dbutils.widgets.get('env'))
 
 # COMMAND ----------
 
-# DBTITLE 1,Pipeline Class
+# DBTITLE 1,Pipeline Config
 # Set MLflowTrackingConfig - comparison metrics logged to MLflow
 mlflow_tracking_cfg = MLflowTrackingConfig(experiment_path=env_vars['model_deploy_experiment_path'],
                                            run_name='staging_vs_prod_comparison',
@@ -79,10 +79,9 @@ cfg = ModelDeploymentConfig(mlflow_tracking_cfg=mlflow_tracking_cfg,
                             comparison_metric=model_comparison_params['metric'],
                             higher_is_better=model_comparison_params['higher_is_better'])
 
-# Instantiate pipeline
-model_deployment_pipeline = ModelDeployment(cfg)
-
 # COMMAND ----------
 
 # DBTITLE 1,Execute Pipeline
+# Instantiate pipeline
+model_deployment_pipeline = ModelDeployment(cfg)
 model_deployment_pipeline.run()
