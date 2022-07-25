@@ -3,12 +3,14 @@ import logging
 
 class NoReceivedCommandFilter(logging.Filter):
     def filter(self, record):
-        return not record.getMessage().startswith('Received command c')
+        if 'Received command c' not in record.getMessage():
+            return record.getMessage()
 
 
 class NoPythonDotEnvFilter(logging.Filter):
     def filter(self, record):
-        return not record.getMessage().startswith('Python-dotenv')
+        if 'Python-dotenv' not in record.getMessage():
+            return record.getMessage()
 
 
 def get_logger():
