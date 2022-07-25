@@ -1,4 +1,4 @@
-from telco_churn.common import Workload
+from telco_churn.common import Workload, MLflowTrackingConfig
 from telco_churn.model_deployment import ModelDeployment, ModelDeploymentConfig
 from telco_churn.utils.logger_utils import get_logger
 
@@ -7,9 +7,10 @@ _logger = get_logger()
 
 class ModelDeploymentJob(Workload):
 
-    def _get_mlflow_params(self):
-        return {'experiment_path': self.env_vars['model_deploy_experiment_path'],
-                'model_name': self.env_vars['model_name']}
+    def _get_mlflow_tracking_cfg(self):
+        return MLflowTrackingConfig(experiment_path=self.env_vars['model_deploy_experiment_path'],
+                                    run_name='staging_vs_prod_comparison',
+                                    model_name=self.env_vars['model_name'])
 
     def _get_reference_data(self) -> str:
         reference_table_database_name = self.env_vars['reference_table_database_name']
@@ -24,8 +25,8 @@ class ModelDeploymentJob(Workload):
 
     def launch(self):
         _logger.info('Launching ModelDeploymentJob job')
-        _logger.info(f'Running model-deployment pipeline in {self.env_vars["DEPLOYMENT_ENV"]} environment')
-        cfg = ModelDeploymentConfig(mlflow_params=self._get_mlflow_params(),
+        _logger.info(f'Running model-deployment pipeline in {self.env_vars["env"]} environment')
+        cfg = ModelDeploymentConfig(mlflow_tracking_cfg=self._get_mlflow_tracking_cfg(),
                                     reference_data=self._get_reference_data(),
                                     label_col=self._get_reference_data_label_col(),
                                     comparison_metric=self._get_model_comparison_params()['metric'],

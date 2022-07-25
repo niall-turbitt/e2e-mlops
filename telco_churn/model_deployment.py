@@ -5,6 +5,7 @@ import pandas as pd
 import pyspark.sql
 from mlflow.tracking import MlflowClient
 
+from telco_churn.common import MLflowTrackingConfig
 from telco_churn.model_inference import ModelInference
 from telco_churn.utils.evaluation_utils import ModelEvaluation
 from telco_churn.utils.logger_utils import get_logger
@@ -16,9 +17,8 @@ _logger = get_logger()
 class ModelDeploymentConfig:
     """
     Attributes:
-        mlflow_params (dict): Dictionary of MLflow params. Must contain the keys experiment_path and model_name.
-            experiment_path refers to the path to the MLflow experiment to track metrics from model comparison.
-            model_name refers to the name of the model in the MLflow Model Registry.
+        mlflow_tracking_cfg (MLflowTrackingConfig)
+            Configuration data class used to unpack MLflow parameters during a model training run.
         reference_data (str): Name of table to use as a reference DataFrame to score loaded model against.
             Must contain column(s) for lookup keys to join feature data from Feature Store
         label_col (str): Name of label column in input data
@@ -26,7 +26,7 @@ class ModelDeploymentConfig:
         higher_is_better (bool): Boolean indicating whether a higher value for the evaluation metric equates to better
             model performance
     """
-    mlflow_params: dict
+    mlflow_tracking_cfg: MLflowTrackingConfig
     reference_data: str
     label_col: str = 'churn'
     comparison_metric: str = 'roc_auc_score'
@@ -52,21 +52,22 @@ class ModelDeployment:
     def __init__(self, cfg: ModelDeploymentConfig):
         self.cfg = cfg
 
-    def _set_experiment(self):
+    @staticmethod
+    def _set_experiment(mlflow_tracking_cfg: MLflowTrackingConfig):
         """
         Set MLflow experiment. Use one of either experiment_id or experiment_path
         """
-        if 'experiment_id' in self.cfg.mlflow_params:
-            _logger.info(f'MLflow experiment_id: {self.cfg.mlflow_params["experiment_id"]}')
-            mlflow.set_experiment(experiment_id=self.cfg.mlflow_params['experiment_id'])
-        elif 'experiment_path' in self.cfg.mlflow_params:
-            _logger.info(f'MLflow experiment_path: {self.cfg.mlflow_params["experiment_path"]}')
-            mlflow.set_experiment(experiment_name=self.cfg.mlflow_params['experiment_path'])
+        if mlflow_tracking_cfg.experiment_id is not None:
+            _logger.info(f'MLflow experiment_id: {mlflow_tracking_cfg.experiment_id}')
+            mlflow.set_experiment(experiment_id=mlflow_tracking_cfg.experiment_id)
+        elif mlflow_tracking_cfg.experiment_path is not None:
+            _logger.info(f'MLflow experiment_path: {mlflow_tracking_cfg.experiment_path}')
+            mlflow.set_experiment(experiment_name=mlflow_tracking_cfg.experiment_path)
         else:
-            raise RuntimeError('MLflow experiment_id or experiment_path must be set in mlflow_params')
+            raise RuntimeError('MLflow experiment_id or experiment_path must be set in MLflowTrackingConfig')
 
     def _get_model_uri_by_stage(self, stage: str):
-        return f'models:/{self.cfg.mlflow_params["model_name"]}/{stage}'
+        return f'models:/{self.cfg.mlflow_tracking_cfg.model_name}/{stage}'
 
     def _batch_inference_by_stage(self, stage: str) -> pyspark.sql.DataFrame:
         """
@@ -90,7 +91,7 @@ class ModelDeployment:
         _logger.info(f'Computing batch inference using: {model_uri}')
         _logger.info(f'Reference data: {self.cfg.reference_data}')
         model_inference = ModelInference(model_uri=model_uri,
-                                         inference_data=self.cfg.reference_data)
+                                         input_table_name=self.cfg.reference_data)
 
         return model_inference.run_batch()
 
@@ -135,7 +136,7 @@ class ModelDeployment:
             Evaluation metric computed using Production model
         """
         client = MlflowClient()
-        model_name = self.cfg.mlflow_params['model_name']
+        model_name = self.cfg.mlflow_tracking_cfg.model_name
         staging_model_version = client.get_latest_versions(name=model_name, stages=['staging'])[0]
 
         _logger.info(f'metric={self.cfg.comparison_metric}')
@@ -193,8 +194,10 @@ class ModelDeployment:
         _logger.info('==========Running model deployment==========')
 
         _logger.info('==========Setting MLflow experiment==========')
-        self._set_experiment()
-        with mlflow.start_run(run_name='Model Comparison'):
+        mlflow_tracking_cfg = self.cfg.mlflow_tracking_cfg
+        self._set_experiment(mlflow_tracking_cfg)
+
+        with mlflow.start_run(run_name=mlflow_tracking_cfg.run_name):
 
             _logger.info('==========Batch inference: staging model==========')
             staging_inference_pred_df = self._batch_inference_by_stage(stage='staging')

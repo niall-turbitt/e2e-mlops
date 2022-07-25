@@ -34,17 +34,17 @@ jobs:
         run: |
           pip install -r unit-requirements.txt
 
-      - name: Deploy telco-churn-model-train job [prod environment]
+      - name: Deploy PROD-telco-churn-model-train job [prod environment]
         run: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs=telco-churn-model-train --environment=prod
+          dbx deploy --deployment-file conf/deployment.yml --jobs=PROD-telco-churn-model-train --environment=prod
 
-      - name: Deploy telco-churn-model-deployment job [prod environment]
+      - name: Deploy PROD-telco-churn-model-deployment job [prod environment]
         run: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs=telco-churn-model-deployment --environment=prod
+          dbx deploy --deployment-file conf/deployment.yml --jobs=PROD-telco-churn-model-deployment --environment=prod
 
-      - name: Deploy telco-churn-model-inference-batch job [prod environment]
+      - name: Deploy PROD-telco-churn-model-inference-batch job [prod environment]
         run: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs=telco-churn-model-inference-batch --environment=prod
+          dbx deploy --deployment-file conf/deployment.yml --jobs=PROD-telco-churn-model-inference-batch --environment=prod
 
       - name: Create Release
         id: create_release

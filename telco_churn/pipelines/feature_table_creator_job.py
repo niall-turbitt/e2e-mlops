@@ -31,7 +31,7 @@ class FeatureTableCreatorJob(Workload):
         Launch FeatureStoreTableCreator job
         """
         _logger.info('Launching FeatureTableCreator job')
-        _logger.info(f'Running feature-table-creation pipeline in {self.env_vars["DEPLOYMENT_ENV"]} environment')
+        _logger.info(f'Running feature-table-creation pipeline in {self.env_vars["env"]} environment')
         cfg = FeatureTableCreatorConfig(input_table=self._get_input_table(),
                                         featurizer_cfg=self._get_data_prep_params(),
                                         feature_store_table_cfg=self._get_feature_store_table_cfg(),

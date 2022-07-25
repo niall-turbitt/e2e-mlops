@@ -1,6 +1,6 @@
 import unittest
 
-from telco_churn.jobs.sample_job import SampleJob
+from telco_churn.pipelines.sample_test_job import SampleJob
 from uuid import uuid4
 from pyspark.dbutils import DBUtils  # noqa
 
@@ -33,7 +33,7 @@ class SampleJobIntegrationTest(unittest.TestCase):
 
 if __name__ == '__main__':
     # please don't change the logic of test result checks here
-    # it's intentionally done in this way to comply with jobs run result checks
+    # it's intentionally done in this way to comply with pipelines run result checks
     # for other tests, please simply replace the SampleJobIntegrationTest with your custom class name
     loader = unittest.TestLoader()
     tests = loader.loadTestsFromTestCase(SampleJobIntegrationTest)

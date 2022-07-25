@@ -9,22 +9,28 @@ _logger = get_logger()
 
 class ModelInference:
     """
-    Class to execute model inference
+    Class to execute model inference.
+    Apply the model at the specified URI for batch inference on the table with name input_table_name,
+    writing results to the table with name output_table_name
     """
-    def __init__(self, model_uri: str, inference_data: str):
+    def __init__(self, model_uri: str, input_table_name: str, output_table_name: str = None):
         """
+
         Parameters
         ----------
         model_uri : str
             MLflow model uri. Model model must have been logged using the Feature Store API
-        inference_data : str
+        input_table_name : str
             Table name to load as a Spark DataFrame to score the model on. Must contain column(s)
             for lookup keys to join feature data from Feature Store
+        output_table_name : str
+            Output table name to write results to
         """
         self.model_uri = model_uri
-        self.inference_data = inference_data
+        self.input_table_name = input_table_name
+        self.output_table_name = output_table_name
 
-    def _load_inference_df(self) -> pyspark.sql.DataFrame:
+    def _load_input_table(self) -> pyspark.sql.DataFrame:
         """
         Load Spark DataFrame containing lookup keys to join feature data from Feature Store
 
@@ -32,9 +38,9 @@ class ModelInference:
         -------
         pyspark.sql.DataFrame
         """
-        inference_table_name = self.inference_data
-        _logger.info(f'Loading lookup keys from table: {inference_table_name}')
-        return spark.table(inference_table_name)
+        input_table_name = self.input_table_name
+        _logger.info(f"Loading lookup keys from input table: {input_table_name}")
+        return spark.table(input_table_name)
 
     def fs_score_batch(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
         """
@@ -46,16 +52,15 @@ class ModelInference:
         Parameters
         ----------
         df : pyspark.sql.DataFrame
-
             The DataFrame to score the model on. Feature Store features will be joined with df prior to scoring the
-            model. df must:
+                model. df must:
 
-                1. Contain columns for lookup keys required to join feature data from Feature Store, as specified in
-                   the feature_spec.yaml artifact.
-                2. Contain columns for all source keys required to score the model, as specified in the
-                   feature_spec.yaml artifact.
-                3. Not contain a column prediction, which is reserved for the modelʼs predictions. df may contain
-                   additional columns.
+                    1. Contain columns for lookup keys required to join feature data from Feature Store, as specified in
+                       the feature_spec.yaml artifact.
+                    2. Contain columns for all source keys required to score the model, as specified in the
+                       feature_spec.yaml artifact.
+                    3. Not contain a column prediction, which is reserved for the modelʼs predictions. df may contain
+                       additional columns.
 
         Returns
         -------
@@ -66,7 +71,7 @@ class ModelInference:
                 3. A column prediction containing the output of the model.
         """
         fs = FeatureStoreClient()
-        _logger.info(f'Loading model from Model Registry: {self.model_uri}')
+        _logger.info(f"Loading model from Model Registry: {self.model_uri}")
 
         return fs.score_batch(self.model_uri, df)
 
@@ -83,53 +88,35 @@ class ModelInference:
                 2. All feature values retrieved from Feature Store.
                 3. A column prediction containing the output of the model.
         """
-        inference_df = self._load_inference_df()
-        inference_pred_df = self.fs_score_batch(inference_df)
+        input_df = self._load_input_table()
+        pred_df = self.fs_score_batch(input_df)
 
-        return inference_pred_df
+        return pred_df
 
-    def run_and_write_batch(self, delta_path: str = None, table_name: str = None, mode: str = 'overwrite'):
+    def run_and_write_batch(self, mode: str = 'overwrite') -> None:
         """
-        Run batch inference, save as Delta table (and optionally) create predictions table
+        Run batch inference, save as Delta table to `self.output_table_name`
 
         Parameters
         ----------
-        delta_path :  str
-            Path to save resulting predictions to (as delta)
-        table_name : str
-            Name of predictions table
         mode : str
             Specify behavior when predictions data already exists.
-            Options include:
-                * 'append': Append contents of this :class:`DataFrame` to existing data.
-                * 'overwrite': Overwrite existing data.
+                        Options include:
+                            * "append": Append contents of this :class:`DataFrame` to existing data.
+                            * "overwrite": Overwrite existing data.
+
+        Returns
+        -------
+
         """
-        _logger.info('==========Running batch model inference==========')
+        _logger.info("==========Running batch model inference==========")
+        pred_df = self.run_batch()
 
-        inference_pred_df = self.run_batch()
+        _logger.info("==========Writing predictions==========")
+        _logger.info(f"mode={mode}")
+        _logger.info(f"Predictions written to {self.output_table_name}")
+        # Model predictions are written to the Delta table provided as input.
+        # Delta is the default format in Databricks Runtime 8.0 and above.
+        pred_df.write.format("delta").mode(mode).saveAsTable(self.output_table_name)
 
-        _logger.info('==========Writing predictions==========')
-        if mode == 'overwrite':
-            _logger.info(f'mode={mode}')
-            if delta_path is None:
-                raise RuntimeError('Provide a path to delta_path to save predictions table to')
-            _logger.info(f'Writing predictions to DBFS: {delta_path}')
-            inference_pred_df.write.format('delta').mode(mode).save(delta_path)
-            if table_name is None:
-                raise RuntimeError('Provide a table_name to create from predictions')
-            spark.sql(f'DROP TABLE IF EXISTS {table_name};')
-            _logger.info(f'Creating predictions table: {table_name}')
-            spark.sql(f"""CREATE TABLE {table_name}
-                          USING DELTA LOCATION '{delta_path}';""")
-            _logger.info(f'Created predictions table: {table_name}')
-        elif mode == 'append':
-            _logger.info(f'mode={mode}')
-            if table_name is None:
-                raise RuntimeError('Provide a table_name to append predictions to')
-            _logger.info(f'Appending predictions to {table_name}')
-            inference_pred_df.write.format('delta').mode(mode).saveAsTable(table_name)
-        else:
-            raise RuntimeError(f'Provide one of "overwrite" or "append" as a data_output mode arg. Provided arg {mode} '
-                               f'is not supported')
-
-        _logger.info('==========Batch model inference completed==========')
+        _logger.info("==========Batch model inference completed==========")

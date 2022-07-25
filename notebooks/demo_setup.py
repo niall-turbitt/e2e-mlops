@@ -1,10 +1,32 @@
-import os
+# Databricks notebook source
+# MAGIC %md
+# MAGIC 
+# MAGIC # `demo_setup`
+# MAGIC 
+# MAGIC Pipeline to ensure that we can run the demo from a clean setup. Executing the `DemoSetup.run()` will do the following steps:
+# MAGIC 
+# MAGIC - Delete Model Registry model if exists (archive any existing models)
+# MAGIC - Delete MLflow experiments if exists
+# MAGIC - Delete Feature Table if exists
 
+# COMMAND ----------
+
+# DBTITLE 1,pip install requirements.txt
+# MAGIC %pip install -r ../requirements.txt
+
+# COMMAND ----------
+
+# DBTITLE 1,Set env
+dbutils.widgets.dropdown('env', 'dev', ['dev', 'staging', 'prod'], 'Environment Name')
+
+# COMMAND ----------
+
+# DBTITLE 1,Module Imports
 import mlflow
 from mlflow.tracking import MlflowClient
 from mlflow.exceptions import RestException
 
-from telco_churn.common import Workload
+from telco_churn.utils.notebook_utils import load_and_set_env_vars, load_config
 from telco_churn.utils.logger_utils import get_logger
 
 from databricks.feature_store.client import FeatureStoreClient
@@ -13,8 +35,28 @@ client = MlflowClient()
 fs = FeatureStoreClient()
 _logger = get_logger()
 
+# COMMAND ----------
 
-class DemoSetup(Workload):
+# DBTITLE 1,Load pipeline config params
+# Set pipeline name
+pipeline_name = 'demo_setup'
+
+# Load pipeline config yaml file (../conf/pipeline_configs/{pipeline_name}.yml)
+pipeline_config = load_config(pipeline_name)
+
+# Load and set arbitrary params via spark_env_vars
+# Params passed via ../conf/{env}/.{env}.env and ../conf/.base_data_params
+env_vars = load_and_set_env_vars(env=dbutils.widgets.get('env'))
+
+# COMMAND ----------
+
+# DBTITLE 1,Pipeline Class
+class DemoSetup:
+    
+    def __init__(self, conf: dict, env_vars: dict):
+        
+        self.conf = conf
+        self.env_vars = env_vars
 
     def _get_train_experiment_id(self):
         try:
@@ -223,7 +265,7 @@ class DemoSetup(Workload):
         self.dbutils.fs.rm(labels_table_dbfs_path, True)
         _logger.info(f'Deleted labels Delta table: {labels_table_dbfs_path}')
 
-    def setup(self):
+    def run(self):
         """
         Demo setup steps:
         * Delete Model Registry model if exists (archive any existing models)
@@ -231,7 +273,7 @@ class DemoSetup(Workload):
         * Delete Feature Table if exists
         """
         _logger.info('==========Demo Setup=========')
-        _logger.info(f'Running demo-setup pipeline in {self.env_vars["DEPLOYMENT_ENV"]} environment')
+        _logger.info(f'Running demo-setup pipeline in {self.env_vars["env"]} environment')
 
         if self.conf['delete_model_registry']:
             _logger.info('Checking MLflow Model Registry...')
@@ -260,15 +302,9 @@ class DemoSetup(Workload):
 
         _logger.info('==========Demo Setup Complete=========')
 
-    def launch(self) -> None:
-        """
-        Launch DemoSetup job
-        """
-        _logger.info('Launching DemoSetup job')
-        DemoSetup().setup()
-        _logger.info('DemoSetup job finished!')
+# COMMAND ----------
 
-
-if __name__ == '__main__':
-    job = DemoSetup()
-    job.launch()
+# DBTITLE 1,Execute Pipeline
+# Instantiate pipeline
+demo_setup_pipeline = DemoSetup(conf=pipeline_config, env_vars=env_vars)
+demo_setup_pipeline.run()
