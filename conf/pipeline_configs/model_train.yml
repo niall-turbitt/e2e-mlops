@@ -1,5 +1,6 @@
 mlflow_params:
-  run_name: 'random_forest_baseline'
+  run_name: 'random_forest_max_depth_8'
+
 
 pipeline_params:
   test_size: 0.25
