@@ -1,2 +1,2 @@
 output_format: 'delta'
-output_path: 'dbfs:/dbx/tmp/test/e2e_mlops'
+output_path: 'dbfs:/dbx/tmp/test/sc_e2e_mlops'
