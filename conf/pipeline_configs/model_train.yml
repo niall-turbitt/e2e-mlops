@@ -1,5 +1,6 @@
 mlflow_params:
-  run_name: 'random_forest_new_model'
+  run_name: 'random_forest_baseline'
+
 
 pipeline_params:
   test_size: 0.25
@@ -7,7 +8,7 @@ pipeline_params:
 
 model_params:
   n_estimators: 100
-  max_depth: 8
+  max_depth: 4
   min_samples_leaf: 1
   max_features: 'auto'
   random_state: 42
