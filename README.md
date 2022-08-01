@@ -27,8 +27,7 @@ The following pipelines currently defined within the package are:
 The following outlines the workflow to demo the repo.
 
 ### Set up
-1. Clone https://github.com/niall-turbitt/e2e-mlops
-   - `git clone https://github.com/niall-turbitt/e2e-mlops.git`
+1. Fork https://github.com/niall-turbitt/e2e-mlops
 1. Configure [Databricks CLI connection profile](https://docs.databricks.com/dev-tools/cli/index.html#connection-profiles)
     - The project is designed to use 3 different Databricks CLI connection profiles: dev, staging and prod. 
       These profiles are set in [e2e-mlops/.dbx/project.json](https://github.com/niall-turbitt/e2e-mlops/blob/main/.dbx/project.json).
@@ -36,7 +35,7 @@ The following outlines the workflow to demo the repo.
       **In practice each profile would correspond to separate dev, staging and prod Databricks workspaces.**
     - This [project.json](https://github.com/niall-turbitt/e2e-mlops/blob/main/.dbx/project.json) file will have to be 
       adjusted accordingly to the connection profiles a user has configured on their local machine.
-1. Configure Databricks secrets for GitHub Actions
+1. Configure Databricks secrets for GitHub Actions (ensure GitHub actions are enabled for you forked project, as the default is off in a forked repo).
     - Within the GitHub project navigate to Secrets under the project settings
     - To run the GitHub actions workflows we require the following GitHub actions secrets:
         - `DATABRICKS_STAGING_HOST`
@@ -109,11 +108,12 @@ The following outlines the workflow to demo the repo.
         - `git checkout -b  dev/new_model`
     - Make a change to the [`model_train.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_train.yml) config file, updating `max_depth` under model_params from 4 to 8
         - Optional: change run name under mlflow params in [`model_train.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_train.yml) config file
-    - Create pull request, to merge the branch dev/new_model into main
+    - Create pull request, to instantiate a request to merge the branch dev/new_model into main. 
 
 * On pull request the following steps are triggered in the GitHub Actions workflow:
     1. Trigger unit tests 
     1. Trigger integration tests
+* Note that upon tests successfully passing, this merge request will have to be confirmed in GitHub.    
 
 
 3. **Cut release**
