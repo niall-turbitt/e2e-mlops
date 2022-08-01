@@ -238,7 +238,7 @@ dbx deploy --jobs=<name of the job to test> --files-only
 dbx launch --job=<name of the job to test> --as-run-submit --trace
 ```
 
-Please note that for testing we recommend using [jobless deployments](https://dbx.readthedocs.io/en/latest/run_submit.html), so you won't affect existing job definitions.
+Please note that for testing we recommend using [jobless deployments](https://dbx.readthedocs.io/en/latest/guidance/run_submit.html), so you won't affect existing job definitions.
 
 ### Interactive execution and development on Databricks clusters
 
