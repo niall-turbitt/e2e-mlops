@@ -66,7 +66,7 @@ The following outlines the workflow to demo the repo.
 
 ### Workflow
 
-1. **Run `telco-churn-initial-model-train-register` multitask job**
+1. **Run `PROD-telco-churn-initial-model-train-register` multitask job in prod environment**
 
     - To demonstrate a CICD workflow, we want to start from a “steady state” where there is a current model in production. 
       As such, we will manually trigger a multitask job to do the following steps:
@@ -78,16 +78,16 @@ The following outlines the workflow to demo the repo.
 
     - Outlined below are the detailed steps to do this:
 
-        1. Run the multitask `telco-churn-initial-model-train-register` job via an automated job cluster 
+        1. Run the multitask `PROD-telco-churn-initial-model-train-register` job via an automated job cluster in the prod environment
            (NOTE: multitask jobs can only be run via `dbx deploy; dbx launch` currently).
            ```
-           dbx deploy --jobs=telco-churn-initial-model-train-register --environment=prod --files-only
-           dbx launch --job=telco-churn-initial-model-train-register --environment=prod --as-run-submit --trace
+           dbx deploy --jobs=PROD-telco-churn-initial-model-train-register --environment=prod --files-only
+           dbx launch --job=PROD-telco-churn-initial-model-train-register --environment=prod --as-run-submit --trace
            ```
            See the Limitations section below regarding running multitask jobs. In order to reduce cluster start up time
            you may want to consider using a [Databricks pool](https://docs.databricks.com/clusters/instance-pools/index.html), 
            and specify this pool ID in [`conf/deployment.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/deployment.yml).
-    - `telco-churn-initial-model-train-register` tasks:
+    - `PROD-telco-churn-initial-model-train-register` tasks:
         1. Demo setup task steps ([`demo-setup`](https://github.com/niall-turbitt/e2e-mlops/blob/main/telco_churn/jobs/demo_setup_job.py))
             1. Delete Model Registry model if exists (archive any existing models).
             1. Delete MLflow experiment if exists.
@@ -125,17 +125,17 @@ The following outlines the workflow to demo the repo.
         - `git push origin <tag_name>`
 
     - On pushing this the following steps are triggered in the [`onrelease.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/.github/workflows/onrelease.yml) GitHub Actions workflow:
-        1. Trigger unit tests
-        1. Deploy `telco-churn-model-train` job
-        1. Deploy `telco-churn-model-deployment` job
-        1. Deploy `telco-churn-model-inference-batch` job
+        1. Trigger unit tests.
+        1. Deploy `PROD-telco-churn-model-train` job to the prod environment.
+        1. Deploy `PROD-telco-churn-model-deployment` job to the prod environment.
+        1. Deploy `PROD-telco-churn-model-inference-batch` job to the prod environment.
             - These jobs will now all be present in the specified workspace, and visible under the [Workflows](https://docs.databricks.com/data-engineering/jobs/index.html) tab.
     
 
-4. **Run `telco-churn-model-train` job**
+4. **Run `PROD-telco-churn-model-train` job in the prod environment**
     - Manually trigger job via UI
-        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `telco-churn-model-train` job will be present.
-        - Click into telco-churn-model-train and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration.
+        - In the Databricks workspace (prod environment) go to `Workflows` > `Jobs`, where the `PROD-telco-churn-model-train` job will be present.
+        - Click into PROD-telco-churn-model-train and select ‘Run Now’. Doing so will trigger the job on the specified cluster configuration.
     - Alternatively you can trigger the job using the Databricks CLI:
       - `databricks jobs run-now –job-id JOB_ID`
        
@@ -151,14 +151,14 @@ The following outlines the workflow to demo the repo.
     - Version 2 (Staging): RandomForestClassifier (`max_depth=8`)
 
 
-5. **Run `telco-churn-model-deployment` job (Continuous Deployment)**
+5. **Run `PROD-telco-churn-model-deployment` job (Continuous Deployment) in the prod environment**
     - Manually trigger job via UI
         - In the Databricks workspace go to `Workflows` > `Jobs`, where the `telco-churn-model-deployment` job will be present.
         - Click into telco-churn-model-deployment and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration. 
     - Alternatively you can trigger the job using the Databricks CLI:
       - `databricks jobs run-now –job-id JOB_ID`
     
-    - Model deployment job steps  (`telco-churn-model-deployment`)
+    - Model deployment job steps  (`PROD-telco-churn-model-deployment`)
         1. Compare new “candidate model” in `stage='Staging'` versus current Production model in `stage='Production'`.
         1. Comparison criteria set through [`model_deployment.yml`](https://github.com/niall-turbitt/e2e-mlops/blob/main/conf/job_configs/model_deployment.yml)
             1. Compute predictions using both models against a specified reference dataset
@@ -166,14 +166,14 @@ The following outlines the workflow to demo the repo.
             1. If Staging model performs worse than Production model, archive Staging model
             
 
-6. **Run `telco-churn-model-inference-batch` job** 
+6. **Run `PROD-telco-churn-model-inference-batch` job in the prod environment** 
     - Manually trigger job via UI
-        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `telco-churn-model-inference-batch` job will be present.
+        - In the Databricks workspace go to `Workflows` > `Jobs`, where the `PROD-telco-churn-model-inference-batch` job will be present.
         - Click into telco-churn-model-inference-batch and click ‘Run Now’. Doing so will trigger the job on the specified cluster configuration.
     - Alternatively you can trigger the job using the Databricks CLI:
       - `databricks jobs run-now –job-id JOB_ID`
 
-    - Batch model inference steps  (`telco-churn-model-inference-batch`)
+    - Batch model inference steps  (`PROD-telco-churn-model-inference-batch`)
         1. Load model from stage=Production in Model Registry
             - **NOTE:** model must have been logged to MLflow using the Feature Store API
         1. Use primary keys in specified inference input data to load features from feature store
