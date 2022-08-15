@@ -1,19 +1,19 @@
 {
     "environments": {
         "dev": {
-            "profile": "e2-demo-west",
-            "workspace_dir": "/Shared/e2e_mlops/dev/dbx/e2e_mlops_dev",
-            "artifact_location": "dbfs:/Shared/e2e_mlops/dev/dbx/projects/e2e_mlops_dbx_dev"
+            "profile": "udhay-e2e-mlops-demo-west",
+            "workspace_dir": "/Users/udhayaraj.sivalingam@databricks.com/e2e-mlops-demo/dev/dbx/e2e-mlops-demo-dev",
+            "artifact_location": "dbfs:/Users/udhayaraj.sivalingam@databricks.com/e2e-mlops-demo/dev/dbx/projects/e2e-mlops-demo-dev"
         },
         "staging": {
-            "profile": "e2-demo-west",
-            "workspace_dir": "/Shared/e2e_mlops/staging/dbx/e2e_mlops_staging",
-            "artifact_location": "dbfs:/Shared/e2e_mlops/staging/dbx/projects/e2e_mlops_dbx_staging"
-        },
+            "profile": "udhay-e2e-mlops-demo-west",
+            "workspace_dir": "/Users/udhayaraj.sivalingam@databricks.com/e2e-mlops-demo/stg/dbx/e2e-mlops-demo-stg",
+            "artifact_location": "dbfs:/Users/udhayaraj.sivalingam@databricks.com/e2e-mlops-demo/stg/dbx/projects/e2e-mlops-demo-stg"
+       },
         "prod": {
-            "profile": "e2-demo-west",
-            "workspace_dir": "/Shared/e2e_mlops/prod/dbx/e2e_mlops_prod",
-            "artifact_location": "dbfs:/Shared/e2e_mlops/prod/dbx/projects/e2e_mlops_dbx_prod"
+            "profile": "udhay-e2e-mlops-demo-west",
+            "workspace_dir": "/Users/udhayaraj.sivalingam@databricks.com/e2e-mlops-demo/prd/dbx/e2e-mlops-demo-prd",
+            "artifact_location": "dbfs:/Users/udhayaraj.sivalingam@databricks.com/e2e-mlops-demo/prd/dbx/projects/e2e-mlops-demo-prd"
         }
     }
 }

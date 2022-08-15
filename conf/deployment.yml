@@ -10,8 +10,8 @@ custom:
     # two fields with a pool_id to acquire both the driver and instances from.
     # If driver_instance_pool_id and instance_pool_id are set, both node_type_id and driver_node_type_id CANNOT be supplied.
     # As such, if providing a pool_id for driver and worker instances, please ensure that node_type_id and driver_node_type_id are not present
-#    driver_instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
-#    instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
+    # driver_instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
+    # instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
 
   dev-cluster-config: &dev-cluster-config
     new_cluster:
