@@ -1,19 +1,20 @@
 {
     "environments": {
         "dev": {
-            "profile": "e2-demo-west",
-            "workspace_dir": "/Shared/e2e_mlops/dev/dbx/e2e_mlops_dev",
-            "artifact_location": "dbfs:/Shared/e2e_mlops/dev/dbx/projects/e2e_mlops_dbx_dev"
+            "profile": "field-eng-west",
+            "workspace_dir": "/Users/jeanne.choo@databricks.com/e2e_mlops/dev/dbx/e2e_mlops_dev",
+            "artifact_location": "dbfs:/Users/jeanne.choo@databricks.com/e2e_mlops/dev/dbx/projects/e2e_mlops_dbx_dev"
         },
         "staging": {
-            "profile": "e2-demo-west",
-            "workspace_dir": "/Shared/e2e_mlops/staging/dbx/e2e_mlops_staging",
-            "artifact_location": "dbfs:/Shared/e2e_mlops/staging/dbx/projects/e2e_mlops_dbx_staging"
+            "profile": "field-eng-west",
+            "workspace_dir": "/Users/jeanne.choo@databricks.com/e2e_mlops/staging/dbx/e2e_mlops_staging",
+            "artifact_location": "dbfs:/Users/jeanne.choo@databricks.com/e2e_mlops/staging/dbx/projects/e2e_mlops_dbx_staging"
         },
         "prod": {
-            "profile": "e2-demo-west",
-            "workspace_dir": "/Shared/e2e_mlops/prod/dbx/e2e_mlops_prod",
-            "artifact_location": "dbfs:/Shared/e2e_mlops/prod/dbx/projects/e2e_mlops_dbx_prod"
+            "profile": "field-eng-west",
+            "workspace_dir": "/Users/jeanne.choo@databricks.com/e2e_mlops/prod/dbx/e2e_mlops_prod",
+            "artifact_location": "dbfs:/Users/jeanne.choo@databricks.com/e2e_mlops/prod/dbx/projects/e2e_mlops_dbx_prod"
         }
     }
 }
+
