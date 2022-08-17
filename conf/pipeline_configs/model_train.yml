@@ -1,5 +1,5 @@
 mlflow_params:
-  run_name: 'random_forest_baseline'
+  run_name: 'yyl_random_forest_baseline'
 
 
 pipeline_params:
