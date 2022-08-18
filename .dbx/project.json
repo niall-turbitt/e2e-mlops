@@ -13,7 +13,7 @@
         "prod": {
             "profile": "field-eng-west",
             "workspace_dir": "/Users/jeanne.choo@databricks.com/e2e_mlops/prod/dbx/e2e_mlops_prod",
-            "artifact_location": "dbfs:/Users/jeanne.choo@databricks.com/e2e_mlops/prod/dbx/projects/e2e_mlops_dbx_prod"
+            "artifact_location": "dbfs:/Shared/e2e_mlops/prod/dbx/projects/e2e_mlops_dbx_prod"
         }
     }
 }
