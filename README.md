@@ -79,7 +79,7 @@ The following outlines the workflow to demo the repo.
     - Outlined below are the detailed steps to do this:
 
         1. Run the multitask `PROD-telco-churn-initial-model-train-register` job via an automated job cluster in the prod environment
-           (NOTE: multitask jobs can only be run via `dbx deploy; dbx launch` currently).
+           - **NOTE:** multitask jobs can only be run via `dbx deploy; dbx launch` currently).
            ```
            dbx deploy --jobs=PROD-telco-churn-initial-model-train-register --environment=prod --files-only
            dbx launch --job=PROD-telco-churn-initial-model-train-register --environment=prod --as-run-submit --trace
@@ -93,7 +93,8 @@ The following outlines the workflow to demo the repo.
             1. Delete MLflow experiment if exists.
             1. Delete Feature Table if exists.
         1. Feature table creation task steps (`feature-table-creation`)
-            1. Creates new churn_features feature table in the Feature Store
+            1. Creates new churn_features feature table in the Feature Store. 
+                - **NOTE:** `ibm_telco_churn.bronze_customers` is a table created from the following [dataset](https://www.kaggle.com/datasets/yeanzc/telco-customer-churn-ibm-dataset). This will not be automatically available in your Databricks workspace. The user will have to create this table (or update the `feature-table-creation` config to point at this dataset) in your own workspace.
         1. Model train task steps (`model-train`)
             1. Train initial “baseline” classifier (RandomForestClassifier - `max_depth=4`) 
                 - **NOTE:** no changes to config need to be made at this point
