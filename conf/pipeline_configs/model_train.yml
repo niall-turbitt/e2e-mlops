@@ -1,5 +1,6 @@
 mlflow_params:
   run_name: 'tania_random_forest_max_depth_update_to_10'
+  run_name: 'random_forest_max_depth_update_new'
 
 
 pipeline_params:
