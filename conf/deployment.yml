@@ -32,21 +32,21 @@ environments:
   dev:
     strict_path_adjustment_policy: true
     jobs:
-      - name: 'DEV-telco-churn-demo-setup'
+      - name: 'daiwtmuc-DEV-telco-churn-demo-setup'
         <<: *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/demo_setup_job.py'
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
-      - name: 'DEV-telco-churn-feature-table-creation'
+      - name: 'daiwtmuc-DEV-telco-churn-feature-table-creation'
         <<: *dev-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/feature_table_creator_job.py'
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/feature_table_creator.yml']
-      - name: 'DEV-telco-churn-model-train'
+      - name: 'daiwtmuc-DEV-telco-churn-model-train'
         <<:
           - *dev-cluster-config
         spark_python_task:
@@ -54,7 +54,7 @@ environments:
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_train.yml']
-      - name: 'DEV-telco-churn-model-deployment'
+      - name: 'daiwtmuc-DEV-telco-churn-model-deployment'
         <<:
           - *dev-cluster-config
         spark_python_task:
@@ -62,7 +62,7 @@ environments:
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_deployment.yml']
-      - name: 'DEV-telco-churn-model-inference-batch'
+      - name: 'daiwtmuc-DEV-telco-churn-model-inference-batch'
         <<:
           - *dev-cluster-config
         spark_python_task:
@@ -70,7 +70,7 @@ environments:
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/dev/.dev.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_inference_batch.yml']
-      - name: 'DEV-telco-churn-sample-integration-test'
+      - name: 'daiwtmuc-DEV-telco-churn-sample-integration-test'
         <<:
           - *dev-cluster-config
         spark_python_task:
@@ -82,7 +82,7 @@ environments:
   staging:
     strict_path_adjustment_policy: true
     jobs:
-      - name: 'STAGING-telco-churn-sample-integration-test'
+      - name: 'daiwtmuc-STAGING-telco-churn-sample-integration-test'
         <<:
           - *staging-cluster-config
         spark_python_task:
@@ -93,14 +93,14 @@ environments:
   prod:
     strict_path_adjustment_policy: true
     jobs:
-      - name: 'PROD-telco-churn-demo-setup'
+      - name: 'daiwtmuc-PROD-telco-churn-demo-setup'
         <<: *prod-cluster-config
         spark_python_task:
           python_file: 'file://telco_churn/pipelines/demo_setup_job.py'
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/prod/.prod.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
-      - name: 'PROD-telco-churn-initial-model-train-register'
+      - name: 'daiwtmuc-PROD-telco-churn-initial-model-train-register'
         tasks:
           - task_key: 'demo-setup'
             <<:
@@ -129,7 +129,7 @@ environments:
               parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                            '--env', 'file:fuse://conf/prod/.prod.env',
                            '--conf-file', 'file:fuse://conf/pipeline_configs/model_train.yml']
-      - name: 'PROD-telco-churn-model-train'
+      - name: 'daiwtmuc-PROD-telco-churn-model-train'
         <<:
           - *prod-cluster-config
         spark_python_task:
@@ -137,7 +137,7 @@ environments:
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/prod/.prod.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_train.yml']
-      - name: 'PROD-telco-churn-model-deployment'
+      - name: 'daiwtmuc-PROD-telco-churn-model-deployment'
         <<:
           - *prod-cluster-config
         spark_python_task:
@@ -145,7 +145,7 @@ environments:
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/prod/.prod.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/model_deployment.yml']
-      - name: 'PROD-telco-churn-model-inference-batch'
+      - name: 'daiwtmuc-PROD-telco-churn-model-inference-batch'
         <<:
           - *prod-cluster-config
         spark_python_task:
