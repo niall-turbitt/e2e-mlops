@@ -42,7 +42,7 @@ jobs:
 
       - name: Deploy integration test [staging environment]
         run: |
-          dbx deploy --jobs=daiwtmuc-STAGING-telco-churn-sample-integration-test --environment=staging --assets-only
+          dbx deploy --jobs=daiwtmuc-STAGING-telco-churn-sample-integration-test --environment=staging --files-only
 
       - name: Run integration test [staging environment]
         run: |
