@@ -254,7 +254,7 @@ class DemoSetup(Workload):
 
         if self.conf['drop_labels_table']:
             _logger.info('Checking existing labels table...')
-            labels_table_dbfs_path = self.env_vars['labels_table_dbfs_path']
+            labels_table_dbfs_path = self.env_vars[' ']
             if self._check_labels_delta_table_exists(labels_table_dbfs_path=labels_table_dbfs_path):
                 self._delete_labels_delta_table(labels_table_dbfs_path=labels_table_dbfs_path)
 
