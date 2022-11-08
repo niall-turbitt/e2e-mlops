@@ -1,1 +1,2 @@
 python-dotenv==0.20.0
+pandas==1.3
