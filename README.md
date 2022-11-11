@@ -1,4 +1,8 @@
-# e2e-mlops
+# [DEPRECATED] e2e-mlops
+
+**NOTE:** This repository is deprecated as of 2022/11/11. The end-to-end MLOps workflow demonstrated in this project was designed with recommended tooling available at the time. Since the release of this repo, Databricks has built a product-supported MLOps template, currently in private preview. If you would like to express interest and enroll in a private preview version of this template, please complete [this questionnaire](https://docs.google.com/forms/d/e/1FAIpQLSfHXCmkbsEURjQQvtUGObgh2D5q1eD4YRHnUxZ0M4Hu0W63WA/viewform).
+
+
 
 This repo is intended to demonstrate an end-to-end MLOps workflow on Databricks, where a model is deployed along with its ancillary pipelines to a specified (currently single) Databricks workspace.
 Each pipeline (e.g model training pipeline, model deployment pipeline) is deployed as a [Databricks job](https://docs.databricks.com/data-engineering/jobs/jobs.html), where these jobs are deployed to a Databricks workspace using Databricks Labs' [`dbx`](https://dbx.readthedocs.io/en/latest/index.html) tool. 
