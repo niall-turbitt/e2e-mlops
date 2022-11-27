@@ -1,7 +1,7 @@
 {
     "environments": {
         "dev": {
-            "profile": "e2-demo-west",
+            "profile": "dev",
             "workspace_dir": "/Shared/e2e_mlops/dev/dbx/e2e_mlops_dev",
             "artifact_location": "dbfs:/Shared/e2e_mlops/dev/dbx/projects/e2e_mlops_dbx_dev"
         },

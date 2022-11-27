@@ -17,7 +17,7 @@ class FeaturizerConfig:
         cat_cols (list): List of categorical columns. Only required if ohe=True
         drop_missing (bool): Flag to indicate whether or not to drop missing values
     """
-    label_col: str = 'churnString'
+    label_col: str = 'churnLabel'
     ohe: bool = False
     cat_cols: list = None
     drop_missing: bool = True

@@ -1,7 +1,7 @@
 input_table: 'ibm_telco_churn.bronze_customers'
 
 data_prep_params:
-  label_col: 'churnString'
+  label_col: 'churnLabel'
   ohe: False
 #  # Only require cat_cols if ohe=True
 #  cat_cols: ['gender', 'partner', 'dependents',
