@@ -10,7 +10,7 @@ on:
 jobs:
   ci-pipeline:
 
-    runs-on: ubuntu-latest
+    runs-on: linux
     strategy:
       max-parallel: 4
 
