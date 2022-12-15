@@ -2,10 +2,13 @@ custom:
 
   # Cluster configs for each environment
   default-cluster-spec: &default-cluster-spec
-    spark_version: '11.0.x-cpu-ml-scala2.12'
-    node_type_id: 'i3.xlarge' # NOTE: this is an AWS-specific instance type. Change accordingly if running on Azure or GCP.
-    driver_node_type_id: 'i3.xlarge'  # NOTE: this is an AWS-specific instance type. Change accordingly if running on Azure or GCP.
+    spark_version: "11.3.x-cpu-ml-scala2.12"
     num_workers: 1
+    # node_type_id: "Standard_E8_v3"
+    node_type_id: "Standard_L8s_v2"
+    #node_type_id: 'i3.xlarge' # NOTE: this is an AWS-specific instance type. Change accordingly if running on Azure or GCP.
+    #driver_node_type_id: 'i3.xlarge'  # NOTE: this is an AWS-specific instance type. Change accordingly if running on Azure or GCP.
+    #num_workers: 1
     # To reduce start up time for each job, it is advisable to use a cluster pool. To do so involves supplying the following
     # two fields with a pool_id to acquire both the driver and instances from.
     # If driver_instance_pool_id and instance_pool_id are set, both node_type_id and driver_node_type_id CANNOT be supplied.
@@ -29,6 +32,47 @@ custom:
 # please note that we're using FUSE reference for config, and env files, hence we're going to load this file using its local FS path
 environments:
 
+  default:
+    strict_path_adjustment_policy: true
+    jobs:
+      - name: 'DEV-telco-churn-demo-setup'
+        <<: *dev-cluster-config
+        spark_python_task:
+          python_file: 'file://telco_churn/pipelines/demo_setup_job.py'
+          parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                       '--env', 'file:fuse://conf/dev/.dev.env',
+                       '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
+
+      - name: 'PROD-telco-churn-initial-model-train-register'
+        tasks:
+          - task_key: 'demo-setup'
+            <<:
+              - *prod-cluster-config
+            spark_python_task:
+              python_file: 'file://telco_churn/pipelines/demo_setup_job.py'
+              parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                           '--env', 'file:fuse://conf/prod/.prod.env',
+                           '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
+          - task_key: 'feature-table-creation'
+            <<: *prod-cluster-config
+            depends_on:
+              - task_key: 'demo-setup'
+            spark_python_task:
+              python_file: 'file://telco_churn/pipelines/feature_table_creator_job.py'
+              parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                           '--env', 'file:fuse://conf/prod/.prod.env',
+                           '--conf-file', 'file:fuse://conf/pipeline_configs/feature_table_creator.yml']
+          - task_key: 'model-train'
+            <<: *prod-cluster-config
+            depends_on:
+              - task_key: 'demo-setup'
+              - task_key: 'feature-table-creation'
+            spark_python_task:
+              python_file: 'file://telco_churn/pipelines/model_train_job.py'
+              parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
+                           '--env', 'file:fuse://conf/prod/.prod.env',
+                           '--conf-file', 'file:fuse://conf/pipeline_configs/model_train.yml']
+                           
   dev:
     strict_path_adjustment_policy: true
     jobs:

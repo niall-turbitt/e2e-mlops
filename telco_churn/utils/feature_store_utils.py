@@ -5,6 +5,9 @@ import pyspark
 import databricks
 from databricks.feature_store import FeatureStoreClient
 
+from telco_churn.utils.logger_utils import get_logger
+
+_logger = get_logger()
 
 def create_and_write_feature_table(df: pyspark.sql.DataFrame,
                                    feature_table_name: str,
@@ -29,6 +32,9 @@ def create_and_write_feature_table(df: pyspark.sql.DataFrame,
     -------
     databricks.feature_store.entities.feature_table.FeatureTable
     """
+    _logger.info('feature_table_name {}'.format(feature_table_name))
+    _logger.info('primary_keys {}'.format(primary_keys))
+    
     fs = FeatureStoreClient()
 
     feature_table = fs.create_table(

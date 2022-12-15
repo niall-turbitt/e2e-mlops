@@ -162,6 +162,7 @@ class FeatureTableCreator:
         """
         _logger.info('==========Data Ingest==========')
         input_df = self.run_data_ingest()
+        # input_df.columns = input_df.columns.str.replace(" ", "_")
 
         _logger.info('==========Data Prep==========')
         proc_df = self.run_data_prep(input_df)

@@ -17,7 +17,7 @@ class FeaturizerConfig:
         cat_cols (list): List of categorical columns. Only required if ohe=True
         drop_missing (bool): Flag to indicate whether or not to drop missing values
     """
-    label_col: str = 'churnString'
+    label_col: str = 'Churn Label'
     ohe: bool = False
     cat_cols: list = None
     drop_missing: bool = True
@@ -128,7 +128,13 @@ class Featurizer:
         _logger.info('Running Data Preprocessing steps...')
 
         # Convert Spark DataFrame to pandas on Spark DataFrame
+        _logger.info('dataframe head - {}'.format(df.head()))
+        _logger.info('-------------------')
+        _logger.info('DF type {}'.format(type(df)))
+        _logger.info('8-8-8-8-8-8-8-8-8-')
         psdf = df.pandas_api()
+        # psdf.rename(columns = {'CustomerID':'customerID'}, inplace = True)
+        # psdf.columns = psdf.columns.str.replace(" ", "_")
 
         # Convert label to int and rename column
         _logger.info(f'Processing label: {self.cfg.label_col}')
