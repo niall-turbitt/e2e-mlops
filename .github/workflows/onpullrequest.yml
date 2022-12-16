@@ -42,4 +42,4 @@ jobs:
           
       - name: Deploy integration test [staging environment]
         run: |
-          dbx deploy --jobs=STAGING-telco-churn-sample-integration-test --files-only
+          dbx deploy --jobs=STAGING-telco-churn-sample-integration-test --environment=staging --files-only
