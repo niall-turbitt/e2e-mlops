@@ -2,7 +2,6 @@
     "environments": {
         "default": {
             "profile": "e2e-mlops-demo",
-            "storage_type": "mlflow",
             "properties": {
                 "workspace_directory": "/Shared/dbx/mlops",
                 "artifact_location": "dbfs:/Shared/dbx/projects/mlops"
@@ -10,7 +9,6 @@
         },
         "dev": {
             "profile": "e2e-mlops-demo",
-            "storage_type": "mlflow",
             "properties": {
                 "workspace_directory": "/Shared/dbx/mlops",
                 "artifact_location": "dbfs:/Shared/dbx/projects/mlops"
@@ -18,7 +16,6 @@
         },
         "staging": {
             "profile": "e2e-mlops-demo",
-            "storage_type": "mlflow",
             "properties": {
                 "workspace_directory": "/Shared/dbx/mlops",
                 "artifact_location": "dbfs:/Shared/dbx/projects/mlops"
@@ -26,7 +23,6 @@
         },
         "prod": {
             "profile": "e2e-mlops-demo",
-            "storage_type": "mlflow",
             "properties": {
                 "workspace_directory": "/Shared/dbx/mlops",
                 "artifact_location": "dbfs:/Shared/dbx/projects/mlops"
