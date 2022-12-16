@@ -8,7 +8,7 @@ pipeline_params:
 
 model_params:
   n_estimators: 100
-  max_depth: 8
+  max_depth: 12
   min_samples_leaf: 1
   max_features: 'auto'
   random_state: 42
