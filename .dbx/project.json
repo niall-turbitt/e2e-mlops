@@ -2,6 +2,10 @@
     "environments": {
         "default": {
             "profile": "e2e-mlops-demo",
+            "properties": {
+                "workspace_directory": "/Shared/dbx/mlops",
+                "artifact_location": "dbfs:/Shared/dbx/projects/mlops"
+            }            
         },
         "dev": {
             "profile": "e2e-mlops-demo",
