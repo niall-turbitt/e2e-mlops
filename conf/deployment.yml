@@ -100,7 +100,7 @@ environments:
           parameters: ['--base-data-params', 'file:fuse://conf/.base_data_params.env',
                        '--env', 'file:fuse://conf/prod/.prod.env',
                        '--conf-file', 'file:fuse://conf/pipeline_configs/demo_setup.yml']
-      - name: 'PROD-telco-churn-initial-model-train-register'
+      - name: 'PROD-rkm-telco-churn-initial-model-train-register'
         tasks:
           - task_key: 'demo-setup'
             <<:
