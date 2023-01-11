@@ -3,15 +3,15 @@ custom:
   # Cluster configs for each environment
   default-cluster-spec: &default-cluster-spec
     spark_version: '11.0.x-cpu-ml-scala2.12'
-    node_type_id: 'i3.xlarge' # NOTE: this is an AWS-specific instance type. Change accordingly if running on Azure or GCP.
-    driver_node_type_id: 'i3.xlarge'  # NOTE: this is an AWS-specific instance type. Change accordingly if running on Azure or GCP.
+#    node_type_id: 'i3.xlarge' # NOTE: this is an AWS-specific instance type. Change accordingly if running on Azure or GCP.
+#    driver_node_type_id: 'i3.xlarge'  # NOTE: this is an AWS-specific instance type. Change accordingly if running on Azure or GCP.
     num_workers: 1
     # To reduce start up time for each job, it is advisable to use a cluster pool. To do so involves supplying the following
     # two fields with a pool_id to acquire both the driver and instances from.
     # If driver_instance_pool_id and instance_pool_id are set, both node_type_id and driver_node_type_id CANNOT be supplied.
     # As such, if providing a pool_id for driver and worker instances, please ensure that node_type_id and driver_node_type_id are not present
-#    driver_instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
-#    instance_pool_id: '0617-151415-bells2-pool-hh7h6tjm'
+    driver_instance_pool_id: '0111-084817-hick45-pool-3s1ceiaa'
+    instance_pool_id: '0111-084817-hick45-pool-3s1ceiaa'
 
   dev-cluster-config: &dev-cluster-config
     new_cluster:
