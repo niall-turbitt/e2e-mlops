@@ -10,7 +10,7 @@ build
 dist
 
 # venv
-venv
+.venv
 
 # Unit test / coverage reports
 .coverage
