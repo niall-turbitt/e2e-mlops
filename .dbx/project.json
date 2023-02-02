@@ -2,7 +2,7 @@
     "environments": {
         "dev": {
             "profile": "e2-demo-west",
-            "workspace_dir": "/Users/maciej.wojciechowski@b-yond.com/e2e_mlops/dev",
+            "workspace_dir": "/Users/maciej.wojciechowski@b-yond.com/e2e_mlops/dev/dbx/e2e_mlops_dev",
             "artifact_location": "dbfs:/Users/maciej.wojciechowski@b-yond.com/e2e_mlops/dev/dbx/projects/e2e_mlops_dbx_dev"
         },
         "staging": {

@@ -1,15 +1,15 @@
 # Delete MLflow Registry model
 # Model name set in deployment.yml
-delete_model_registry: True
+delete_model_registry: False
 
 # Delete MLflow Tracking experiments (both the training experiment and the deployment experiment)
 # Experiment paths/id set in deployment.yml
-delete_mlflow_experiments: True
+delete_mlflow_experiments: False
 
 # Drop Feature Store feature table if it exists
 # Feature table name set in deployment.yml
-drop_feature_table: True
+drop_feature_table: False
 
 # Drop labels table if it exists
 # Label table name set in deployment.yml
-drop_labels_table: True
+drop_labels_table: False
