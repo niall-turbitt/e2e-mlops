@@ -1,6 +1,6 @@
 # [DEPRECATED] e2e-mlops
 
-> **NOTE:** This repository is deprecated as of 2022/11/11. The end-to-end MLOps workflow demonstrated in this project was designed with recommended tooling available at the time. Since the release of this repo, Databricks has built a product-supported MLOps template, currently in private preview. If you would like to express interest and enroll in a private preview version of this template, please complete [this questionnaire](https://docs.google.com/forms/d/e/1FAIpQLSfHXCmkbsEURjQQvtUGObgh2D5q1eD4YRHnUxZ0M4Hu0W63WA/viewform).
+> **NOTE:** This repository is deprecated as of 2022/11/11. The end-to-end MLOps workflow demonstrated in this project was designed with recommended tooling available at the time. Since the release of this repo, Databricks has built a product-supported MLOps template called MLOps Stacks (currently in private preview). The repo for MLOps Stacks can be found [here](https://github.com/databricks/mlops-stack). If you would like to express interest and enroll in this private preview, please complete [this questionnaire](https://docs.google.com/forms/d/e/1FAIpQLSfHXCmkbsEURjQQvtUGObgh2D5q1eD4YRHnUxZ0M4Hu0W63WA/viewform).
 
 ---
 
